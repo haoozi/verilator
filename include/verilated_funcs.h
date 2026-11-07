@@ -2552,8 +2552,18 @@ static inline WDataOutP VL_SHIFTL_WWI(int obits, int, int, WDataOutP owp, WDataI
         for (int i = 0; i < word_shift; ++i) owp[i] = 0;
         for (int i = word_shift; i < VL_WORDS_I(obits); ++i) owp[i] = lwp[i - word_shift];
     } else {
-        for (int i = 0; i < VL_WORDS_I(obits); ++i) owp[i] = 0;
-        _vl_insert_WW(owp, lwp, obits - 1, rd);
+        const int words = VL_WORDS_I(obits - rd);
+        const int right_shift = VL_EDATASIZE - bit_shift;
+        for (int i = 0; i < word_shift; ++i) owp[i] = 0;
+        owp[word_shift] = lwp[0] << bit_shift;
+        for (int i = 1; i < words; ++i) {
+            owp[word_shift + i] = (lwp[i] << bit_shift) | (lwp[i - 1] >> right_shift);
+        }
+        // A partial top word may contain only the carry from the last input word.
+        if (word_shift + words < VL_WORDS_I(obits)) {
+            owp[word_shift + words] = lwp[words - 1] >> right_shift;
+        }
+        owp[VL_WORDS_I(obits) - 1] &= VL_MASK_E(obits);
     }
     return owp;
 }
