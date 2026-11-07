@@ -10,6 +10,9 @@
 import vltest_bootstrap
 
 test.scenarios('vltmt')
+
+if test.repcut:
+    test.skip("Tests original MTask profiles; RepCut profiles are tested by t_repcut_native")
 test.top_filename = "t/t_gen_alw.v"  # It doesn't really matter what test
 
 test.compile(v_flags2=["--prof-pgo"], threads=2)

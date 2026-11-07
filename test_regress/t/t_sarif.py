@@ -20,7 +20,9 @@ sarif_filename = test.obj_dir + "/" + test.vm_prefix + ".sarif"
 test.file_grep_not(test.compile_log_filename, r'__WARN')
 test.file_grep_not(sarif_filename, r'__WARN')
 
-test.files_identical(sarif_filename, "t/" + test.name + ".sarif.out", "logfile")
+# SARIF retains the requested command line even when lint-only disables RepCut.
+sarif_golden = "t/" + test.name + ("_repcut" if test.repcut else "") + ".sarif.out"
+test.files_identical(sarif_filename, sarif_golden, "logfile")
 
 # Check that sarif parses
 nout = test.run_capture("sarif --version", check=False)

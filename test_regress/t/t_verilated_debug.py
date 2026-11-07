@@ -14,6 +14,9 @@ test.verilated_debug = True
 
 test.compile(verilator_flags2=['-fno-inline-cfuncs'])
 
+if test.repcut:
+    test.golden_filename = "t/t_verilated_debug_repcut.out"
+
 test.execute()
 
 if not test.vltmt:  # vltmt output may vary between thread exec order

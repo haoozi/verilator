@@ -15,6 +15,9 @@ test.golden_filename = "t/t_cover_line.out"
 
 test.compile(verilator_flags2=['--cc --coverage-line +define+ATTRIBUTE'])
 
+if test.repcut:
+    test.golden_filename = "t/t_cover_line_repcut.out"
+
 test.execute()
 
 test.run(cmd=[os.environ["VERILATOR_ROOT"] + "/bin/verilator_coverage",
@@ -31,7 +34,8 @@ test.run(cmd=[os.environ["VERILATOR_ROOT"] + "/bin/verilator_coverage",
               test.obj_dir + "/coverage.dat"],
          verilator_run=True)  # yapf:disable
 
-test.files_identical(test.obj_dir + "/coverage.info", "t/" + test.name + ".info.out")
+info_golden = "t/" + test.name + ("_repcut" if test.repcut else "") + ".info.out"
+test.files_identical(test.obj_dir + "/coverage.info", info_golden)
 
 # If installed
 nout = test.run_capture("lcov --version", check=False)

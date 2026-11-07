@@ -15,6 +15,9 @@ test.golden_filename = "t/t_cover_line.out"
 
 test.compile(verilator_flags2=['--cc', '--coverage-line', "t/t_cover_line.vlt"])
 
+if test.repcut:
+    test.golden_filename = "t/t_cover_line_repcut.out"
+
 test.execute()
 
 # Read the input .v file and do any CHECK_COVER requests

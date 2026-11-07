@@ -17,7 +17,14 @@ out_filename = test.obj_dir + "/V" + test.name + ".tree.json"
 test.compile(
     v_flags2=["--no-json-edit-nums", "-fno-dfg", test.t_dir + "/t_inst_tree_inl1_pub0.vlt"])
 
-if test.vlt_all:
+if test.vlt_all and test.repcut:
+    # RepCut inlines these intermediate wires. Retained state must still carry
+    # its source location, original name and type in the final JSON tree.
+    test.file_grep(
+        out_filename,
+        r'{"type":"VAR","name":"t.a",.*"loc":"\w,20:[^"]*",.*"origName":"a",.*"dtypeName":"logic"')
+    test.file_grep_not(out_filename, r'"type":"VAR","name":"t.u.u1.u[01].z[01]"')
+elif test.vlt_all:
     test.file_grep(
         out_filename,
         r'{"type":"VAR","name":"t.u.u1.u0.z1",.*"loc":"\w,70:[^"]*",.*"origName":"z1",.*"dtypeName":"logic"'

@@ -20,6 +20,7 @@ test.file_grep(test.stats, r'Optimizations, Cases table normal\s+(\d+)', 8)
 test.file_grep(test.stats, r'Optimizations, Cases table tiny\s+(\d+)', 0)
 test.file_grep(test.stats, r'Optimizations, Cases parallelized\s+(\d+)', 3)
 test.file_grep(test.stats, r'Optimizations, Tables created\s+(\d+)', 2)
-test.file_grep(test.stats, r'Optimizations, Combined CFuncs\s+(\d+)', 9 if test.vltmt else 8)
+test.file_grep(test.stats, r'Optimizations, Combined CFuncs\s+(\d+)', 0 if test.repcut else
+               (9 if test.vltmt else 8))
 
 test.passes()

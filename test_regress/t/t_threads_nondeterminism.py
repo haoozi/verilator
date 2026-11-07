@@ -10,6 +10,9 @@
 import vltest_bootstrap
 
 test.scenarios('vltmt')
+
+if test.repcut:
+    test.skip("Tests original MTask schedule hashing")
 test.top_filename = "t/t_threads_counter.v"
 
 test.compile(verilator_flags2=['--cc --debug-nondeterminism --no-skip-identical'], threads=2)

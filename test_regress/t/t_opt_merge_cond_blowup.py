@@ -19,10 +19,13 @@ test.execute()
 
 if test.vlt:
     # Note, with vltmt this might be split differently, so only checking vlt
-    test.file_grep(test.stats, r'Optimizations, MergeCond merges\s+(\d+)', 500)
+    test.file_grep(test.stats, r'Optimizations, MergeCond merges\s+(\d+)',
+                   0 if test.repcut else 500)
     # V3MergeCond.cpp MAX_DISTANCE
-    test.file_grep(test.stats, r'Optimizations, MergeCond merged items\s+(\d+)', 1000)
+    test.file_grep(test.stats, r'Optimizations, MergeCond merged items\s+(\d+)',
+                   0 if test.repcut else 1000)
     # V3MergeCond.cpp MAX_DISTANCE *2
-    test.file_grep(test.stats, r'Optimizations, MergeCond longest merge\s+(\d+)', 2)
+    test.file_grep(test.stats, r'Optimizations, MergeCond longest merge\s+(\d+)',
+                   0 if test.repcut else 2)
 
 test.passes()

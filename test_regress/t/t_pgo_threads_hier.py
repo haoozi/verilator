@@ -10,6 +10,9 @@
 import vltest_bootstrap
 
 test.scenarios('vltmt')
+
+if test.repcut:
+    test.skip("Tests original MTask profiles; RepCut profiles are tested by t_repcut_hierarchy")
 test.top_filename = "t/t_hier_block_perf.v"
 cycles = 100
 test.sim_time = cycles * 10 + 1000

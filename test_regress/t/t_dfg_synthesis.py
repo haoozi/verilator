@@ -63,7 +63,11 @@ test.compile(verilator_flags2=[
     "-Wno-UNOPTFLAT"
 ])  # yapf:disable
 
-test.file_grep_not(test.obj_dir + "/obj_ref/Vref__stats.txt", r'DFG.*Synthesis')
+# RepCut creates DFG contexts even when optimization is disabled. Context
+# destruction may emit zero counters; no synthesis may have taken place.
+for line in test.file_contents(test.obj_dir + "/obj_ref/Vref__stats.txt").splitlines():
+    if re.search(r'DFG.*Synthesis', line):
+        assert float(line.split()[-1]) == 0, line
 
 # Compile optimized - also builds executable
 test.compile(verilator_flags2=[

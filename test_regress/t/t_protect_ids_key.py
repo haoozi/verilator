@@ -14,6 +14,9 @@ test.top_filename = "t/t_protect_ids.v"
 
 test.compile(verilator_flags2=["--protect-ids --protect-key SECRET_KEY", "t/t_protect_ids_c.cpp"])
 
+if test.repcut:
+    test.golden_filename = "t/t_protect_ids_key_repcut.out"
+
 test.execute()
 
 # Since using a named key, we can check for always identical map

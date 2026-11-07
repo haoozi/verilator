@@ -42,7 +42,8 @@ test.run(cmd=[
     "--vcd " + test.obj_dir + "/profile_exec.vcd",
     "| tee " + gantt_log])   # yapf:disable
 
-if test.vltmt:
+# DPI effects in this stimulus stay on the caller under RepCut.
+if test.vltmt and not test.repcut:
     test.file_grep(gantt_log, r'Total threads += +(\d+)', 2)
     test.file_grep(gantt_log, r'Total mtasks += +(\d+)', 6)
 else:

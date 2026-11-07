@@ -10,6 +10,9 @@
 import vltest_bootstrap
 
 test.scenarios('vlt_all')
+
+if test.repcut and test.vltmt:
+    test.skip("Tests original MTask variable affinity")
 test.top_filename = test.obj_dir + "/t_variable_order_mtask.v"
 
 

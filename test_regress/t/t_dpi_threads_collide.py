@@ -21,6 +21,10 @@ test.compile(v_flags2=["t/t_dpi_threads_c.cpp --threads-dpi all --no-threads-coa
 # and that the DPI C code can detect it under --threads-dpi all
 # mode.
 #
-test.execute(fails=True)
+# RepCut retains DPI effects on the caller, even with --threads-dpi all.
+test.execute(fails=not test.repcut)
+if test.repcut:
+    test.file_grep(test.run_log_filename, r'dpii_sys_task\(\) no collision')
+    test.file_grep_not(test.run_log_filename, r'saw threads collide')
 
 test.passes()

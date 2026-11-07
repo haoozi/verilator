@@ -11,6 +11,9 @@ import vltest_bootstrap
 
 test.scenarios('vltmt')
 
+if test.repcut:
+    test.golden_filename = "t/t_pgo_profoutofdate_repcut.out"
+
 test.compile(threads=2, fails=True, expect_filename=test.golden_filename)
 
 test.passes()

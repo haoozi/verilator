@@ -15,6 +15,9 @@ test.top_filename = "t/t_timing_sched.v"
 test.compile(
     verilator_flags2=["--binary", "--timing", "-fno-inline-cfuncs", "-CFLAGS", "-DVL_DEBUG"])
 
+if test.repcut:
+    test.golden_filename = "t/t_timing_debug1_repcut.out"
+
 test.execute(all_run_flags=["+verilator+debug"])
 
 if not test.vltmt:  # vltmt output may vary between thread exec order

@@ -11,6 +11,9 @@ import vltest_bootstrap
 
 test.scenarios('vltmt')
 
+if test.repcut:
+    test.skip("Tests original MTask scheduler graphs")
+
 # Use a top file which we are sure to be parallelizable
 test.top_filename = "t/t_gen_alw.v"
 

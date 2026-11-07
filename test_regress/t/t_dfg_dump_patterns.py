@@ -13,6 +13,9 @@ test.scenarios('vlt')
 
 test.compile(verilator_flags2=["--dump-dfg-patterns --no-skip-identical"])
 
+if test.repcut:
+    test.golden_filename = "t/t_dfg_dump_patterns_repcut.out"
+
 test.files_identical(test.obj_dir + "/" + test.vm_prefix + "__dfg_patterns.txt",
                      test.golden_filename)
 
