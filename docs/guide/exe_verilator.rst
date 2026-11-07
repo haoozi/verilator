@@ -1644,10 +1644,23 @@ Summary:
    including when :vlopt:`--threads` is greater than one. Use ``--no-repcut``
    to override an earlier ``--repcut`` option.
 
+   Analysis-only modes, including :vlopt:`--lint-only`, :vlopt:`--dpi-hdr-only`,
+   :vlopt:`--json-only`, and preprocessing, do not invoke the partitioner or
+   produce automatic partition artifacts.
+
    By default, Verilator exports the dependency graph and invokes ``rcp`` from
    :envvar:`PATH`, which also needs ``MtKaHyPar`` on :envvar:`PATH`. Neither
    tool is needed to build Verilator or generate ordinary models. Use
    :vlopt:`--repcut-partitioner` to select the partitioner executable.
+   The external-tool integration is tested with `RepCut-Partitioner revision
+   996fe79682610281ca2bd4ccc5986ea05665df1f
+   <https://github.com/ucsc-vama/RepCut-Partitioner/tree/996fe79682610281ca2bd4ccc5986ea05665df1f>`_
+   and `MtKaHyPar revision 212440d553b744e8ef0b3d81fc4dd6b880091810
+   <https://github.com/kahypar/mt-kahypar/tree/212440d553b744e8ef0b3d81fc4dd6b880091810>`_.
+   Older RepCut-Partitioner versions may fail when the dependency cones have
+   no overlap. Put the built ``rcp`` and ``MtKaHyPar`` executables on
+   :envvar:`PATH`; their build requirements are documented in those repositories.
+
    A single-threaded model uses one partition directly. When the graph has no
    more sinks than simulation threads, each sink's complete dependency cone
    gets its own partition; empty worker slots are retained. These trivial
@@ -1677,6 +1690,8 @@ Summary:
    executed on the caller; original procedures handle external access and
    constructs outside the kernel subset. Each activated kernel dispatch
    completes before the scheduler continues.
+   Procedures accessing storage that may alias through a virtual interface
+   also retain native scheduling, preserving nonblocking assignment semantics.
    Partition zero runs on the calling thread and the remaining partitions use
    dedicated worker slots. Functions within a partition remain split according
    to :vlopt:`--output-split-cfuncs`.
