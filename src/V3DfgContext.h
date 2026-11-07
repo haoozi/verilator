@@ -85,6 +85,10 @@ class V3DfgBinToOneHotContext final : public V3DfgSubContext {
     friend class V3DfgContext;
 
 public:
+    // Native decoder construction and cache-shape validation use the same limits.
+    static constexpr uint32_t WIDTH_MIN = 7;
+    static constexpr uint32_t WIDTH_MAX = 20;
+    static constexpr uint32_t TERM_LIMIT = 65;
     // STATE
     VDouble0 m_decodersCreated;  // Number of bianry to one-hot decoders created
 

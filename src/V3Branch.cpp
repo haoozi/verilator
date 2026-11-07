@@ -66,7 +66,7 @@ class BranchVisitor final : public VNVisitorConst {
 
 public:
     // CONSTRUCTORS
-    explicit BranchVisitor(AstNetlist* nodep) { iterateChildrenConst(nodep); }
+    explicit BranchVisitor(AstNode* nodep) { iterateConst(nodep); }
     ~BranchVisitor() override = default;
 };
 
@@ -78,3 +78,5 @@ void V3Branch::branchAll(AstNetlist* nodep) {
     { BranchVisitor{nodep}; }
     V3Global::dumpCheckGlobalTree("branch", 0, dumpTreeEitherLevel() >= 3);
 }
+
+void V3Branch::branchSubtree(AstNode* nodep) { BranchVisitor{nodep}; }

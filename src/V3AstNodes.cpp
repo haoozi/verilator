@@ -1887,11 +1887,13 @@ void AstNodeProcedure::dump(std::ostream& str) const {
     this->AstNode::dump(str);
     if (isSuspendable()) str << " [SUSP]";
     if (needProcess()) str << " [NPRC]";
+    if (isDfgDecoder()) str << " [DFGDEC]";
 }
 
 void AstNodeProcedure::dumpJson(std::ostream& str) const {
     dumpJsonBoolFuncIf(str, isSuspendable);
     dumpJsonBoolFuncIf(str, needProcess);
+    dumpJsonBoolFuncIf(str, isDfgDecoder);
     dumpJsonGen(str);
 }
 
@@ -3255,6 +3257,7 @@ int AstVarRef::instrCount() const {
 }
 void AstVar::dump(std::ostream& str) const {
     this->AstNode::dump(str);
+    if (repcutStorageGroup()) str << " [repcutGroup=" << repcutStorageGroup() << "]";
     if (constPoolEntry()) str << " [CONSTPOOL]";
     if (isSc()) str << " [SC]";
     if (isPrimaryIO()) str << (isInout() ? " [PIO]" : (isWritable() ? " [PO]" : " [PI]"));
@@ -3295,6 +3298,7 @@ void AstVar::dump(std::ostream& str) const {
     str << " " << varType();
 }
 void AstVar::dumpJson(std::ostream& str) const {
+    if (repcutStorageGroup()) dumpJsonNumFunc(str, repcutStorageGroup);
     dumpJsonStrFunc(str, origName);
     dumpJsonStrFunc(str, verilogName);
     dumpJsonBoolFuncIf(str, constPoolEntry);
@@ -3684,6 +3688,12 @@ void AstCFunc::dump(std::ostream& str) const {
     if (isCoroutine()) str << " [CORO]";
     if (needProcess()) str << " [NPRC]";
     if (entryPoint()) str << " [ENTRY]";
+    if (isRepCut()) str << " [REPCUT]";
+    if (repcutNativeBatch()) str << " [REPCUTBATCH]";
+    if (repcutSharedOrder()) str << " repcutSharedOrder=" << repcutSharedOrder();
+    if (repcutLocalPublish()) str << " [REPCUTLOCALPUBLISH]";
+    if (repcutDependencyArgs()) str << " [REPCUTDEPS]";
+    if (noInline()) str << " [NOINLINE]";
     if (noLife()) str << " [NOLIFE]";
 }
 void AstCFunc::dumpJson(std::ostream& str) const {
@@ -3699,6 +3709,12 @@ void AstCFunc::dumpJson(std::ostream& str) const {
     dumpJsonBoolFuncIf(str, isVirtual);
     dumpJsonBoolFuncIf(str, isCoroutine);
     dumpJsonBoolFuncIf(str, needProcess);
+    dumpJsonBoolFuncIf(str, isRepCut);
+    dumpJsonBoolFuncIf(str, repcutNativeBatch);
+    dumpJsonNumFunc(str, repcutSharedOrder);
+    dumpJsonBoolFuncIf(str, repcutLocalPublish);
+    dumpJsonBoolFuncIf(str, repcutDependencyArgs);
+    dumpJsonBoolFuncIf(str, noInline);
     dumpJsonBoolFuncIf(str, noLife);
     dumpJsonGen(str);
     // TODO: maybe try to shorten these flags somehow

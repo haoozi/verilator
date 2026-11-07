@@ -396,11 +396,13 @@ class AstNodeProcedure VL_NOT_FINAL : public AstNode {
     // @astgen op2 := stmtsp : List[AstNode] // Note: op1 is used in some sub-types only
     bool m_suspendable : 1;  // Is suspendable by a Delay, EventControl, etc.
     bool m_needProcess : 1;  // Uses VlProcess
+    bool m_isDfgDecoder : 1;  // DFG-generated one-hot cache update or initialization
 protected:
     AstNodeProcedure(VNType t, FileLine* fl, AstNode* stmtsp)
         : AstNode{t, fl} {
         m_needProcess = false;
         m_suspendable = false;
+        m_isDfgDecoder = false;
         addStmtsp(stmtsp);
     }
 
@@ -409,7 +411,12 @@ public:
     // METHODS
     void dump(std::ostream& str) const override;
     void dumpJson(std::ostream& str) const override;
+    bool sameNode(const AstNode* samep) const override {
+        return isDfgDecoder() == VN_DBG_AS(samep, NodeProcedure)->isDfgDecoder();
+    }
     bool isJustOneBodyStmt() const { return stmtsp() && !stmtsp()->nextp(); }
+    bool isDfgDecoder() const { return m_isDfgDecoder; }
+    void isDfgDecoder(bool flag) { m_isDfgDecoder = flag; }
     bool isSuspendable() const { return m_suspendable; }
     void setSuspendable() { m_suspendable = true; }
     bool needProcess() const { return m_needProcess; }
@@ -536,10 +543,17 @@ class AstCFunc final : public AstNode {
     bool m_dpiImportWrapper : 1;  // Wrapper for invoking DPI import prototype from generated code
     bool m_needProcess : 1;  // Needs access to VlProcess of the caller
     bool m_recursive : 1;  // Recursive or part of recursion
+    bool m_isRepCut : 1;  // Already lowered RepCut evaluation/publication phase
+    bool m_repcutNativeBatch : 1;  // Native compute kernel safe to batch behind triggers
+    bool m_repcutLocalPublish : 1;  // Closed worker wrapper, ends with private scalar publication
+    bool m_repcutDependencyArgs : 1;  // Arguments describe dependencies, not runtime parameters
+    bool m_noInline : 1;  // Preserve a compilation boundary through Verilator and C++ inlining
     bool m_noLife : 1;  // Disable V3Life on this function - has multiple calls, and reads Syms
                         // state
     bool m_isCovergroupSample : 1;  // Automatic covergroup sample() function
     int m_cost;  // Function call cost
+    uint32_t m_repcutSharedOrder
+        = 0;  // Pure domain-shared helper, topological order; zero otherwise
 public:
     AstCFunc(FileLine* fl, const string& name, AstScope* scopep, const string& rtnType = "")
         : ASTGEN_SUPER_CFunc(fl) {
@@ -568,6 +582,11 @@ public:
         m_dpiImportPrototype = false;
         m_dpiImportWrapper = false;
         m_recursive = false;
+        m_isRepCut = false;
+        m_repcutNativeBatch = false;
+        m_repcutLocalPublish = false;
+        m_repcutDependencyArgs = false;
+        m_noInline = false;
         m_noLife = false;
         m_isCovergroupSample = false;
         m_cost = v3Global.opt.instrCountDpi();  // As proxy for unknown general DPI cost
@@ -580,6 +599,11 @@ public:
     bool sameNode(const AstNode* samep) const override {
         const AstCFunc* const asamep = VN_DBG_AS(samep, CFunc);
         return ((isTrace() == asamep->isTrace()) && (rtnTypeVoid() == asamep->rtnTypeVoid())
+                && isRepCut() == asamep->isRepCut() && noInline() == asamep->noInline()
+                && repcutNativeBatch() == asamep->repcutNativeBatch()
+                && repcutSharedOrder() == asamep->repcutSharedOrder()
+                && repcutLocalPublish() == asamep->repcutLocalPublish()
+                && repcutDependencyArgs() == asamep->repcutDependencyArgs()
                 && (argTypes() == asamep->argTypes()) && isLoose() == asamep->isLoose()
                 && (!(dpiImportPrototype() || dpiExportImpl()) || name() == asamep->name()));
     }
@@ -643,6 +667,18 @@ public:
     bool isCoroutine() const { return m_rtnType == "VlCoroutine"; }
     void recursive(bool flag) { m_recursive = flag; }
     bool recursive() const { return m_recursive; }
+    bool isRepCut() const { return m_isRepCut; }
+    void isRepCut(bool flag) { m_isRepCut = flag; }
+    bool repcutNativeBatch() const { return m_repcutNativeBatch; }
+    void repcutNativeBatch(bool flag) { m_repcutNativeBatch = flag; }
+    uint32_t repcutSharedOrder() const { return m_repcutSharedOrder; }
+    void repcutSharedOrder(uint32_t order) { m_repcutSharedOrder = order; }
+    bool repcutLocalPublish() const { return m_repcutLocalPublish; }
+    void repcutLocalPublish(bool flag) { m_repcutLocalPublish = flag; }
+    bool repcutDependencyArgs() const { return m_repcutDependencyArgs; }
+    void repcutDependencyArgs(bool flag) { m_repcutDependencyArgs = flag; }
+    bool noInline() const { return m_noInline; }
+    void noInline(bool flag) { m_noInline = flag; }
     void noLife(bool flag) { m_noLife = flag; }
     bool noLife() const { return m_noLife; }
     bool isCovergroupSample() const { return m_isCovergroupSample; }
@@ -2127,6 +2163,7 @@ class AstVar final : public AstNode {
     VLifetime m_lifetime;  // Lifetime
     VRandAttr m_rand;  // Randomizability of this variable (rand, randc, etc)
     int m_pinNum = 0;  // For JSON, if non-zero the connection pin number
+    uint32_t m_repcutStorageGroup = 0;  // Zero: ordinary layout; otherwise partition/role group
     bool m_ansi : 1;  // Params or pins declared in the module header, rather than the body
     bool m_declTyped : 1;  // Declared as type (for dedup check)
     bool m_tristate : 1;  // Inout or triwire or trireg
@@ -2501,6 +2538,8 @@ public:
     bool isUsedLoopIdx() const { return m_usedLoopIdx; }
     bool mtaskCacheLineAlign() const { return m_mtaskCacheLineAlign; }
     void mtaskCacheLineAlign(bool flag) { m_mtaskCacheLineAlign = flag; }
+    uint32_t repcutStorageGroup() const { return m_repcutStorageGroup; }
+    void repcutStorageGroup(uint32_t group) { m_repcutStorageGroup = group; }
     bool isSc() const VL_MT_SAFE { return m_sc; }
     bool isScQuad() const;
     bool isScBv() const VL_MT_STABLE;

@@ -1,6 +1,536 @@
 module Vt_debug_emitv_t;
+    output logic [127:0]  debug_decode;
+    output logic [14:0]  debug_shared_a;
+    output logic [14:0]  debug_shared_b;
     input logic clk;
     input logic in;
+    input logic [6:0]  debug_index;
+    input logic [127:0]  debug_mask;
+    input logic debug_clk;
+    logic [14:0]  debug_shared_mix;
+    assign debug_shared_mix = ((debug_mask[14:0] ^ 
+                                debug_shared_a) + debug_shared_b);
+    always @(posedge clk) begin
+        debug_shared_a <= debug_shared_mix;
+    end
+    always @(posedge debug_clk) begin
+        debug_shared_b <= (debug_shared_mix ^ debug_index);
+    end
+    /* generate */ begin : genblk1
+        integer signed d;
+    end : genblk1
+    /* generate */ begin : genblk1__BRA__0__KET__
+        assign debug_decode[0] = ((debug_index == 7'h0) 
+                                  ^ debug_mask[0]);
+    end : genblk1__BRA__0__KET__
+    /* generate */ begin : genblk1__BRA__1__KET__
+        assign debug_decode[1] = ((debug_index == 7'h1) 
+                                  ^ debug_mask[1]);
+    end : genblk1__BRA__1__KET__
+    /* generate */ begin : genblk1__BRA__2__KET__
+        assign debug_decode[2] = ((debug_index == 7'h2) 
+                                  ^ debug_mask[2]);
+    end : genblk1__BRA__2__KET__
+    /* generate */ begin : genblk1__BRA__3__KET__
+        assign debug_decode[3] = ((debug_index == 7'h3) 
+                                  ^ debug_mask[3]);
+    end : genblk1__BRA__3__KET__
+    /* generate */ begin : genblk1__BRA__4__KET__
+        assign debug_decode[4] = ((debug_index == 7'h4) 
+                                  ^ debug_mask[4]);
+    end : genblk1__BRA__4__KET__
+    /* generate */ begin : genblk1__BRA__5__KET__
+        assign debug_decode[5] = ((debug_index == 7'h5) 
+                                  ^ debug_mask[5]);
+    end : genblk1__BRA__5__KET__
+    /* generate */ begin : genblk1__BRA__6__KET__
+        assign debug_decode[6] = ((debug_index == 7'h6) 
+                                  ^ debug_mask[6]);
+    end : genblk1__BRA__6__KET__
+    /* generate */ begin : genblk1__BRA__7__KET__
+        assign debug_decode[7] = ((debug_index == 7'h7) 
+                                  ^ debug_mask[7]);
+    end : genblk1__BRA__7__KET__
+    /* generate */ begin : genblk1__BRA__8__KET__
+        assign debug_decode[8] = ((debug_index == 7'h8) 
+                                  ^ debug_mask[8]);
+    end : genblk1__BRA__8__KET__
+    /* generate */ begin : genblk1__BRA__9__KET__
+        assign debug_decode[9] = ((debug_index == 7'h9) 
+                                  ^ debug_mask[9]);
+    end : genblk1__BRA__9__KET__
+    /* generate */ begin : genblk1__BRA__10__KET__
+        assign debug_decode[10] = ((debug_index == 
+                                    7'ha) ^ debug_mask[10]);
+    end : genblk1__BRA__10__KET__
+    /* generate */ begin : genblk1__BRA__11__KET__
+        assign debug_decode[11] = ((debug_index == 
+                                    7'hb) ^ debug_mask[11]);
+    end : genblk1__BRA__11__KET__
+    /* generate */ begin : genblk1__BRA__12__KET__
+        assign debug_decode[12] = ((debug_index == 
+                                    7'hc) ^ debug_mask[12]);
+    end : genblk1__BRA__12__KET__
+    /* generate */ begin : genblk1__BRA__13__KET__
+        assign debug_decode[13] = ((debug_index == 
+                                    7'hd) ^ debug_mask[13]);
+    end : genblk1__BRA__13__KET__
+    /* generate */ begin : genblk1__BRA__14__KET__
+        assign debug_decode[14] = ((debug_index == 
+                                    7'he) ^ debug_mask[14]);
+    end : genblk1__BRA__14__KET__
+    /* generate */ begin : genblk1__BRA__15__KET__
+        assign debug_decode[15] = ((debug_index == 
+                                    7'hf) ^ debug_mask[15]);
+    end : genblk1__BRA__15__KET__
+    /* generate */ begin : genblk1__BRA__16__KET__
+        assign debug_decode[16] = ((debug_index == 
+                                    7'h10) ^ debug_mask[16]);
+    end : genblk1__BRA__16__KET__
+    /* generate */ begin : genblk1__BRA__17__KET__
+        assign debug_decode[17] = ((debug_index == 
+                                    7'h11) ^ debug_mask[17]);
+    end : genblk1__BRA__17__KET__
+    /* generate */ begin : genblk1__BRA__18__KET__
+        assign debug_decode[18] = ((debug_index == 
+                                    7'h12) ^ debug_mask[18]);
+    end : genblk1__BRA__18__KET__
+    /* generate */ begin : genblk1__BRA__19__KET__
+        assign debug_decode[19] = ((debug_index == 
+                                    7'h13) ^ debug_mask[19]);
+    end : genblk1__BRA__19__KET__
+    /* generate */ begin : genblk1__BRA__20__KET__
+        assign debug_decode[20] = ((debug_index == 
+                                    7'h14) ^ debug_mask[20]);
+    end : genblk1__BRA__20__KET__
+    /* generate */ begin : genblk1__BRA__21__KET__
+        assign debug_decode[21] = ((debug_index == 
+                                    7'h15) ^ debug_mask[21]);
+    end : genblk1__BRA__21__KET__
+    /* generate */ begin : genblk1__BRA__22__KET__
+        assign debug_decode[22] = ((debug_index == 
+                                    7'h16) ^ debug_mask[22]);
+    end : genblk1__BRA__22__KET__
+    /* generate */ begin : genblk1__BRA__23__KET__
+        assign debug_decode[23] = ((debug_index == 
+                                    7'h17) ^ debug_mask[23]);
+    end : genblk1__BRA__23__KET__
+    /* generate */ begin : genblk1__BRA__24__KET__
+        assign debug_decode[24] = ((debug_index == 
+                                    7'h18) ^ debug_mask[24]);
+    end : genblk1__BRA__24__KET__
+    /* generate */ begin : genblk1__BRA__25__KET__
+        assign debug_decode[25] = ((debug_index == 
+                                    7'h19) ^ debug_mask[25]);
+    end : genblk1__BRA__25__KET__
+    /* generate */ begin : genblk1__BRA__26__KET__
+        assign debug_decode[26] = ((debug_index == 
+                                    7'h1a) ^ debug_mask[26]);
+    end : genblk1__BRA__26__KET__
+    /* generate */ begin : genblk1__BRA__27__KET__
+        assign debug_decode[27] = ((debug_index == 
+                                    7'h1b) ^ debug_mask[27]);
+    end : genblk1__BRA__27__KET__
+    /* generate */ begin : genblk1__BRA__28__KET__
+        assign debug_decode[28] = ((debug_index == 
+                                    7'h1c) ^ debug_mask[28]);
+    end : genblk1__BRA__28__KET__
+    /* generate */ begin : genblk1__BRA__29__KET__
+        assign debug_decode[29] = ((debug_index == 
+                                    7'h1d) ^ debug_mask[29]);
+    end : genblk1__BRA__29__KET__
+    /* generate */ begin : genblk1__BRA__30__KET__
+        assign debug_decode[30] = ((debug_index == 
+                                    7'h1e) ^ debug_mask[30]);
+    end : genblk1__BRA__30__KET__
+    /* generate */ begin : genblk1__BRA__31__KET__
+        assign debug_decode[31] = ((debug_index == 
+                                    7'h1f) ^ debug_mask[31]);
+    end : genblk1__BRA__31__KET__
+    /* generate */ begin : genblk1__BRA__32__KET__
+        assign debug_decode[32] = ((debug_index == 
+                                    7'h20) ^ debug_mask[32]);
+    end : genblk1__BRA__32__KET__
+    /* generate */ begin : genblk1__BRA__33__KET__
+        assign debug_decode[33] = ((debug_index == 
+                                    7'h21) ^ debug_mask[33]);
+    end : genblk1__BRA__33__KET__
+    /* generate */ begin : genblk1__BRA__34__KET__
+        assign debug_decode[34] = ((debug_index == 
+                                    7'h22) ^ debug_mask[34]);
+    end : genblk1__BRA__34__KET__
+    /* generate */ begin : genblk1__BRA__35__KET__
+        assign debug_decode[35] = ((debug_index == 
+                                    7'h23) ^ debug_mask[35]);
+    end : genblk1__BRA__35__KET__
+    /* generate */ begin : genblk1__BRA__36__KET__
+        assign debug_decode[36] = ((debug_index == 
+                                    7'h24) ^ debug_mask[36]);
+    end : genblk1__BRA__36__KET__
+    /* generate */ begin : genblk1__BRA__37__KET__
+        assign debug_decode[37] = ((debug_index == 
+                                    7'h25) ^ debug_mask[37]);
+    end : genblk1__BRA__37__KET__
+    /* generate */ begin : genblk1__BRA__38__KET__
+        assign debug_decode[38] = ((debug_index == 
+                                    7'h26) ^ debug_mask[38]);
+    end : genblk1__BRA__38__KET__
+    /* generate */ begin : genblk1__BRA__39__KET__
+        assign debug_decode[39] = ((debug_index == 
+                                    7'h27) ^ debug_mask[39]);
+    end : genblk1__BRA__39__KET__
+    /* generate */ begin : genblk1__BRA__40__KET__
+        assign debug_decode[40] = ((debug_index == 
+                                    7'h28) ^ debug_mask[40]);
+    end : genblk1__BRA__40__KET__
+    /* generate */ begin : genblk1__BRA__41__KET__
+        assign debug_decode[41] = ((debug_index == 
+                                    7'h29) ^ debug_mask[41]);
+    end : genblk1__BRA__41__KET__
+    /* generate */ begin : genblk1__BRA__42__KET__
+        assign debug_decode[42] = ((debug_index == 
+                                    7'h2a) ^ debug_mask[42]);
+    end : genblk1__BRA__42__KET__
+    /* generate */ begin : genblk1__BRA__43__KET__
+        assign debug_decode[43] = ((debug_index == 
+                                    7'h2b) ^ debug_mask[43]);
+    end : genblk1__BRA__43__KET__
+    /* generate */ begin : genblk1__BRA__44__KET__
+        assign debug_decode[44] = ((debug_index == 
+                                    7'h2c) ^ debug_mask[44]);
+    end : genblk1__BRA__44__KET__
+    /* generate */ begin : genblk1__BRA__45__KET__
+        assign debug_decode[45] = ((debug_index == 
+                                    7'h2d) ^ debug_mask[45]);
+    end : genblk1__BRA__45__KET__
+    /* generate */ begin : genblk1__BRA__46__KET__
+        assign debug_decode[46] = ((debug_index == 
+                                    7'h2e) ^ debug_mask[46]);
+    end : genblk1__BRA__46__KET__
+    /* generate */ begin : genblk1__BRA__47__KET__
+        assign debug_decode[47] = ((debug_index == 
+                                    7'h2f) ^ debug_mask[47]);
+    end : genblk1__BRA__47__KET__
+    /* generate */ begin : genblk1__BRA__48__KET__
+        assign debug_decode[48] = ((debug_index == 
+                                    7'h30) ^ debug_mask[48]);
+    end : genblk1__BRA__48__KET__
+    /* generate */ begin : genblk1__BRA__49__KET__
+        assign debug_decode[49] = ((debug_index == 
+                                    7'h31) ^ debug_mask[49]);
+    end : genblk1__BRA__49__KET__
+    /* generate */ begin : genblk1__BRA__50__KET__
+        assign debug_decode[50] = ((debug_index == 
+                                    7'h32) ^ debug_mask[50]);
+    end : genblk1__BRA__50__KET__
+    /* generate */ begin : genblk1__BRA__51__KET__
+        assign debug_decode[51] = ((debug_index == 
+                                    7'h33) ^ debug_mask[51]);
+    end : genblk1__BRA__51__KET__
+    /* generate */ begin : genblk1__BRA__52__KET__
+        assign debug_decode[52] = ((debug_index == 
+                                    7'h34) ^ debug_mask[52]);
+    end : genblk1__BRA__52__KET__
+    /* generate */ begin : genblk1__BRA__53__KET__
+        assign debug_decode[53] = ((debug_index == 
+                                    7'h35) ^ debug_mask[53]);
+    end : genblk1__BRA__53__KET__
+    /* generate */ begin : genblk1__BRA__54__KET__
+        assign debug_decode[54] = ((debug_index == 
+                                    7'h36) ^ debug_mask[54]);
+    end : genblk1__BRA__54__KET__
+    /* generate */ begin : genblk1__BRA__55__KET__
+        assign debug_decode[55] = ((debug_index == 
+                                    7'h37) ^ debug_mask[55]);
+    end : genblk1__BRA__55__KET__
+    /* generate */ begin : genblk1__BRA__56__KET__
+        assign debug_decode[56] = ((debug_index == 
+                                    7'h38) ^ debug_mask[56]);
+    end : genblk1__BRA__56__KET__
+    /* generate */ begin : genblk1__BRA__57__KET__
+        assign debug_decode[57] = ((debug_index == 
+                                    7'h39) ^ debug_mask[57]);
+    end : genblk1__BRA__57__KET__
+    /* generate */ begin : genblk1__BRA__58__KET__
+        assign debug_decode[58] = ((debug_index == 
+                                    7'h3a) ^ debug_mask[58]);
+    end : genblk1__BRA__58__KET__
+    /* generate */ begin : genblk1__BRA__59__KET__
+        assign debug_decode[59] = ((debug_index == 
+                                    7'h3b) ^ debug_mask[59]);
+    end : genblk1__BRA__59__KET__
+    /* generate */ begin : genblk1__BRA__60__KET__
+        assign debug_decode[60] = ((debug_index == 
+                                    7'h3c) ^ debug_mask[60]);
+    end : genblk1__BRA__60__KET__
+    /* generate */ begin : genblk1__BRA__61__KET__
+        assign debug_decode[61] = ((debug_index == 
+                                    7'h3d) ^ debug_mask[61]);
+    end : genblk1__BRA__61__KET__
+    /* generate */ begin : genblk1__BRA__62__KET__
+        assign debug_decode[62] = ((debug_index == 
+                                    7'h3e) ^ debug_mask[62]);
+    end : genblk1__BRA__62__KET__
+    /* generate */ begin : genblk1__BRA__63__KET__
+        assign debug_decode[63] = ((debug_index == 
+                                    7'h3f) ^ debug_mask[63]);
+    end : genblk1__BRA__63__KET__
+    /* generate */ begin : genblk1__BRA__64__KET__
+        assign debug_decode[64] = ((debug_index == 
+                                    7'h40) ^ debug_mask[64]);
+    end : genblk1__BRA__64__KET__
+    /* generate */ begin : genblk1__BRA__65__KET__
+        assign debug_decode[65] = ((debug_index == 
+                                    7'h41) ^ debug_mask[65]);
+    end : genblk1__BRA__65__KET__
+    /* generate */ begin : genblk1__BRA__66__KET__
+        assign debug_decode[66] = ((debug_index == 
+                                    7'h42) ^ debug_mask[66]);
+    end : genblk1__BRA__66__KET__
+    /* generate */ begin : genblk1__BRA__67__KET__
+        assign debug_decode[67] = ((debug_index == 
+                                    7'h43) ^ debug_mask[67]);
+    end : genblk1__BRA__67__KET__
+    /* generate */ begin : genblk1__BRA__68__KET__
+        assign debug_decode[68] = ((debug_index == 
+                                    7'h44) ^ debug_mask[68]);
+    end : genblk1__BRA__68__KET__
+    /* generate */ begin : genblk1__BRA__69__KET__
+        assign debug_decode[69] = ((debug_index == 
+                                    7'h45) ^ debug_mask[69]);
+    end : genblk1__BRA__69__KET__
+    /* generate */ begin : genblk1__BRA__70__KET__
+        assign debug_decode[70] = ((debug_index == 
+                                    7'h46) ^ debug_mask[70]);
+    end : genblk1__BRA__70__KET__
+    /* generate */ begin : genblk1__BRA__71__KET__
+        assign debug_decode[71] = ((debug_index == 
+                                    7'h47) ^ debug_mask[71]);
+    end : genblk1__BRA__71__KET__
+    /* generate */ begin : genblk1__BRA__72__KET__
+        assign debug_decode[72] = ((debug_index == 
+                                    7'h48) ^ debug_mask[72]);
+    end : genblk1__BRA__72__KET__
+    /* generate */ begin : genblk1__BRA__73__KET__
+        assign debug_decode[73] = ((debug_index == 
+                                    7'h49) ^ debug_mask[73]);
+    end : genblk1__BRA__73__KET__
+    /* generate */ begin : genblk1__BRA__74__KET__
+        assign debug_decode[74] = ((debug_index == 
+                                    7'h4a) ^ debug_mask[74]);
+    end : genblk1__BRA__74__KET__
+    /* generate */ begin : genblk1__BRA__75__KET__
+        assign debug_decode[75] = ((debug_index == 
+                                    7'h4b) ^ debug_mask[75]);
+    end : genblk1__BRA__75__KET__
+    /* generate */ begin : genblk1__BRA__76__KET__
+        assign debug_decode[76] = ((debug_index == 
+                                    7'h4c) ^ debug_mask[76]);
+    end : genblk1__BRA__76__KET__
+    /* generate */ begin : genblk1__BRA__77__KET__
+        assign debug_decode[77] = ((debug_index == 
+                                    7'h4d) ^ debug_mask[77]);
+    end : genblk1__BRA__77__KET__
+    /* generate */ begin : genblk1__BRA__78__KET__
+        assign debug_decode[78] = ((debug_index == 
+                                    7'h4e) ^ debug_mask[78]);
+    end : genblk1__BRA__78__KET__
+    /* generate */ begin : genblk1__BRA__79__KET__
+        assign debug_decode[79] = ((debug_index == 
+                                    7'h4f) ^ debug_mask[79]);
+    end : genblk1__BRA__79__KET__
+    /* generate */ begin : genblk1__BRA__80__KET__
+        assign debug_decode[80] = ((debug_index == 
+                                    7'h50) ^ debug_mask[80]);
+    end : genblk1__BRA__80__KET__
+    /* generate */ begin : genblk1__BRA__81__KET__
+        assign debug_decode[81] = ((debug_index == 
+                                    7'h51) ^ debug_mask[81]);
+    end : genblk1__BRA__81__KET__
+    /* generate */ begin : genblk1__BRA__82__KET__
+        assign debug_decode[82] = ((debug_index == 
+                                    7'h52) ^ debug_mask[82]);
+    end : genblk1__BRA__82__KET__
+    /* generate */ begin : genblk1__BRA__83__KET__
+        assign debug_decode[83] = ((debug_index == 
+                                    7'h53) ^ debug_mask[83]);
+    end : genblk1__BRA__83__KET__
+    /* generate */ begin : genblk1__BRA__84__KET__
+        assign debug_decode[84] = ((debug_index == 
+                                    7'h54) ^ debug_mask[84]);
+    end : genblk1__BRA__84__KET__
+    /* generate */ begin : genblk1__BRA__85__KET__
+        assign debug_decode[85] = ((debug_index == 
+                                    7'h55) ^ debug_mask[85]);
+    end : genblk1__BRA__85__KET__
+    /* generate */ begin : genblk1__BRA__86__KET__
+        assign debug_decode[86] = ((debug_index == 
+                                    7'h56) ^ debug_mask[86]);
+    end : genblk1__BRA__86__KET__
+    /* generate */ begin : genblk1__BRA__87__KET__
+        assign debug_decode[87] = ((debug_index == 
+                                    7'h57) ^ debug_mask[87]);
+    end : genblk1__BRA__87__KET__
+    /* generate */ begin : genblk1__BRA__88__KET__
+        assign debug_decode[88] = ((debug_index == 
+                                    7'h58) ^ debug_mask[88]);
+    end : genblk1__BRA__88__KET__
+    /* generate */ begin : genblk1__BRA__89__KET__
+        assign debug_decode[89] = ((debug_index == 
+                                    7'h59) ^ debug_mask[89]);
+    end : genblk1__BRA__89__KET__
+    /* generate */ begin : genblk1__BRA__90__KET__
+        assign debug_decode[90] = ((debug_index == 
+                                    7'h5a) ^ debug_mask[90]);
+    end : genblk1__BRA__90__KET__
+    /* generate */ begin : genblk1__BRA__91__KET__
+        assign debug_decode[91] = ((debug_index == 
+                                    7'h5b) ^ debug_mask[91]);
+    end : genblk1__BRA__91__KET__
+    /* generate */ begin : genblk1__BRA__92__KET__
+        assign debug_decode[92] = ((debug_index == 
+                                    7'h5c) ^ debug_mask[92]);
+    end : genblk1__BRA__92__KET__
+    /* generate */ begin : genblk1__BRA__93__KET__
+        assign debug_decode[93] = ((debug_index == 
+                                    7'h5d) ^ debug_mask[93]);
+    end : genblk1__BRA__93__KET__
+    /* generate */ begin : genblk1__BRA__94__KET__
+        assign debug_decode[94] = ((debug_index == 
+                                    7'h5e) ^ debug_mask[94]);
+    end : genblk1__BRA__94__KET__
+    /* generate */ begin : genblk1__BRA__95__KET__
+        assign debug_decode[95] = ((debug_index == 
+                                    7'h5f) ^ debug_mask[95]);
+    end : genblk1__BRA__95__KET__
+    /* generate */ begin : genblk1__BRA__96__KET__
+        assign debug_decode[96] = ((debug_index == 
+                                    7'h60) ^ debug_mask[96]);
+    end : genblk1__BRA__96__KET__
+    /* generate */ begin : genblk1__BRA__97__KET__
+        assign debug_decode[97] = ((debug_index == 
+                                    7'h61) ^ debug_mask[97]);
+    end : genblk1__BRA__97__KET__
+    /* generate */ begin : genblk1__BRA__98__KET__
+        assign debug_decode[98] = ((debug_index == 
+                                    7'h62) ^ debug_mask[98]);
+    end : genblk1__BRA__98__KET__
+    /* generate */ begin : genblk1__BRA__99__KET__
+        assign debug_decode[99] = ((debug_index == 
+                                    7'h63) ^ debug_mask[99]);
+    end : genblk1__BRA__99__KET__
+    /* generate */ begin : genblk1__BRA__100__KET__
+        assign debug_decode[100] = ((debug_index == 
+                                     7'h64) ^ debug_mask[100]);
+    end : genblk1__BRA__100__KET__
+    /* generate */ begin : genblk1__BRA__101__KET__
+        assign debug_decode[101] = ((debug_index == 
+                                     7'h65) ^ debug_mask[101]);
+    end : genblk1__BRA__101__KET__
+    /* generate */ begin : genblk1__BRA__102__KET__
+        assign debug_decode[102] = ((debug_index == 
+                                     7'h66) ^ debug_mask[102]);
+    end : genblk1__BRA__102__KET__
+    /* generate */ begin : genblk1__BRA__103__KET__
+        assign debug_decode[103] = ((debug_index == 
+                                     7'h67) ^ debug_mask[103]);
+    end : genblk1__BRA__103__KET__
+    /* generate */ begin : genblk1__BRA__104__KET__
+        assign debug_decode[104] = ((debug_index == 
+                                     7'h68) ^ debug_mask[104]);
+    end : genblk1__BRA__104__KET__
+    /* generate */ begin : genblk1__BRA__105__KET__
+        assign debug_decode[105] = ((debug_index == 
+                                     7'h69) ^ debug_mask[105]);
+    end : genblk1__BRA__105__KET__
+    /* generate */ begin : genblk1__BRA__106__KET__
+        assign debug_decode[106] = ((debug_index == 
+                                     7'h6a) ^ debug_mask[106]);
+    end : genblk1__BRA__106__KET__
+    /* generate */ begin : genblk1__BRA__107__KET__
+        assign debug_decode[107] = ((debug_index == 
+                                     7'h6b) ^ debug_mask[107]);
+    end : genblk1__BRA__107__KET__
+    /* generate */ begin : genblk1__BRA__108__KET__
+        assign debug_decode[108] = ((debug_index == 
+                                     7'h6c) ^ debug_mask[108]);
+    end : genblk1__BRA__108__KET__
+    /* generate */ begin : genblk1__BRA__109__KET__
+        assign debug_decode[109] = ((debug_index == 
+                                     7'h6d) ^ debug_mask[109]);
+    end : genblk1__BRA__109__KET__
+    /* generate */ begin : genblk1__BRA__110__KET__
+        assign debug_decode[110] = ((debug_index == 
+                                     7'h6e) ^ debug_mask[110]);
+    end : genblk1__BRA__110__KET__
+    /* generate */ begin : genblk1__BRA__111__KET__
+        assign debug_decode[111] = ((debug_index == 
+                                     7'h6f) ^ debug_mask[111]);
+    end : genblk1__BRA__111__KET__
+    /* generate */ begin : genblk1__BRA__112__KET__
+        assign debug_decode[112] = ((debug_index == 
+                                     7'h70) ^ debug_mask[112]);
+    end : genblk1__BRA__112__KET__
+    /* generate */ begin : genblk1__BRA__113__KET__
+        assign debug_decode[113] = ((debug_index == 
+                                     7'h71) ^ debug_mask[113]);
+    end : genblk1__BRA__113__KET__
+    /* generate */ begin : genblk1__BRA__114__KET__
+        assign debug_decode[114] = ((debug_index == 
+                                     7'h72) ^ debug_mask[114]);
+    end : genblk1__BRA__114__KET__
+    /* generate */ begin : genblk1__BRA__115__KET__
+        assign debug_decode[115] = ((debug_index == 
+                                     7'h73) ^ debug_mask[115]);
+    end : genblk1__BRA__115__KET__
+    /* generate */ begin : genblk1__BRA__116__KET__
+        assign debug_decode[116] = ((debug_index == 
+                                     7'h74) ^ debug_mask[116]);
+    end : genblk1__BRA__116__KET__
+    /* generate */ begin : genblk1__BRA__117__KET__
+        assign debug_decode[117] = ((debug_index == 
+                                     7'h75) ^ debug_mask[117]);
+    end : genblk1__BRA__117__KET__
+    /* generate */ begin : genblk1__BRA__118__KET__
+        assign debug_decode[118] = ((debug_index == 
+                                     7'h76) ^ debug_mask[118]);
+    end : genblk1__BRA__118__KET__
+    /* generate */ begin : genblk1__BRA__119__KET__
+        assign debug_decode[119] = ((debug_index == 
+                                     7'h77) ^ debug_mask[119]);
+    end : genblk1__BRA__119__KET__
+    /* generate */ begin : genblk1__BRA__120__KET__
+        assign debug_decode[120] = ((debug_index == 
+                                     7'h78) ^ debug_mask[120]);
+    end : genblk1__BRA__120__KET__
+    /* generate */ begin : genblk1__BRA__121__KET__
+        assign debug_decode[121] = ((debug_index == 
+                                     7'h79) ^ debug_mask[121]);
+    end : genblk1__BRA__121__KET__
+    /* generate */ begin : genblk1__BRA__122__KET__
+        assign debug_decode[122] = ((debug_index == 
+                                     7'h7a) ^ debug_mask[122]);
+    end : genblk1__BRA__122__KET__
+    /* generate */ begin : genblk1__BRA__123__KET__
+        assign debug_decode[123] = ((debug_index == 
+                                     7'h7b) ^ debug_mask[123]);
+    end : genblk1__BRA__123__KET__
+    /* generate */ begin : genblk1__BRA__124__KET__
+        assign debug_decode[124] = ((debug_index == 
+                                     7'h7c) ^ debug_mask[124]);
+    end : genblk1__BRA__124__KET__
+    /* generate */ begin : genblk1__BRA__125__KET__
+        assign debug_decode[125] = ((debug_index == 
+                                     7'h7d) ^ debug_mask[125]);
+    end : genblk1__BRA__125__KET__
+    /* generate */ begin : genblk1__BRA__126__KET__
+        assign debug_decode[126] = ((debug_index == 
+                                     7'h7e) ^ debug_mask[126]);
+    end : genblk1__BRA__126__KET__
+    /* generate */ begin : genblk1__BRA__127__KET__
+        assign debug_decode[127] = ((debug_index == 
+                                     7'h7f) ^ debug_mask[127]);
+    end : genblk1__BRA__127__KET__
     typedef enum logic [2:0] {
         ZERO = 3'h0,
         ONE = 3'h1

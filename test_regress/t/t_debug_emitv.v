@@ -46,11 +46,28 @@ interface Iface (
 endinterface
 
 module t (/*AUTOARG*/
+  // Outputs
+  debug_decode, debug_shared_a, debug_shared_b,
   // Inputs
-  clk, in
+  clk, in, debug_index, debug_mask, debug_clk
   );
   input clk;
   input in;
+  input [6:0] debug_index;
+  input [127:0] debug_mask;
+  output [127:0] debug_decode;
+  input debug_clk;
+  output logic [14:0] debug_shared_a, debug_shared_b;
+
+  // Shared combinational drivers for native multi-domain helper metadata.
+  wire [14:0] debug_shared_mix = (debug_mask[14:0] ^ debug_shared_a) + debug_shared_b;
+  always @(posedge clk) debug_shared_a <= debug_shared_mix;
+  always @(posedge debug_clk) debug_shared_b <= debug_shared_mix ^ 15'(debug_index);
+
+  // Exercise generated one-hot decoder procedure metadata in later dumps.
+  for (genvar d = 0; d < 128; ++d) begin
+    assign debug_decode[d] = (debug_index == 7'(d)) ^ debug_mask[d];
+  end
 
   // verilator lint_off UNPACKED
 

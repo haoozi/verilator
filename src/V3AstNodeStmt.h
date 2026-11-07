@@ -700,6 +700,8 @@ class AstExecGraph final : public AstNodeStmt {
     // statements with statements that dispatch to the thread pool for
     // parallel execution.
     // @astgen op1 := stmtsp : List[AstNode]
+    // @astgen op2 := activep : List[AstNodeExpr]  // Optional activation guards, indexed by fixed
+    // thread
     V3Graph* const m_depGraphp;  // contains ExecMTask vertices
     const string m_name;  // Name of this AstExecGraph (for uniqueness at code generation)
 
