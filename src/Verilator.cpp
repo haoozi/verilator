@@ -603,6 +603,12 @@ static void process() {
                 // Must be after all Sel/array index based optimizations
                 V3Reloop::reloopAll(v3Global.rootp());
             }
+            if (v3Global.opt.repcut() && v3Global.opt.threads() > 1) {
+                // Whole C++ words are visible now. Preserve native clock guards
+                // while moving terminal output work before existing worker joins.
+                // Run after reloop so the audited word indices remain constant.
+                V3RepCut::placeNativeOutputWords(v3Global.rootp());
+            }
         }
 
         // These are no longer needed, remove references before CFunc inlining

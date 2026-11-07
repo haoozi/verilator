@@ -327,6 +327,7 @@ RAW_OBJS_PCH_ASTNOMT = \
   V3RepCutGraph.o \
   V3RepCutNative.o \
   V3RepCutOptimize.o \
+  V3RepCutOutput.o \
   V3RepCutPartition.o \
   V3RepCutPlan.o \
   V3RepCutPriority.o \

@@ -354,6 +354,7 @@ set(COMMON_SOURCES
     V3RepCutGraph.cpp
     V3RepCutNative.cpp
     V3RepCutOptimize.cpp
+    V3RepCutOutput.cpp
     V3RepCutPartition.cpp
     V3RepCutPlan.cpp
     V3RepCutPriority.cpp
