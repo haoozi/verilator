@@ -192,7 +192,7 @@ public:
     bool hasEvents() const { return m_hasEvents; }
     void setHasEvents() { m_hasEvents = true; }
     bool hasClasses() const { return m_hasClasses; }
-    void setHasClasses() { m_hasClasses = true; }
+    void setHasClasses(bool flag = true) { m_hasClasses = flag; }
     bool hasSampled() const { return m_hasSampled; }
     void setHasSampled() { m_hasSampled = true; }
     bool hasTable() const { return m_hasTable; }

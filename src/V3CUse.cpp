@@ -112,9 +112,13 @@ public:
 
 void V3CUse::cUseAll() {
     UINFO(2, __FUNCTION__ << ":");
+    // Parsing sees unused classes too, including the implicit standard package.
+    // Emit garbage collection only when classes survive in the final model.
+    v3Global.setHasClasses(false);
     // Call visitor separately for each module, so visitor state is cleared
     for (AstNodeModule* modp = v3Global.rootp()->modulesp(); modp;
          modp = VN_AS(modp->nextp(), NodeModule)) {
+        if (VN_IS(modp, Class)) v3Global.setHasClasses();
         // Insert under this module; someday we should e.g. make Ast
         // for each output file and put under that
         CUseVisitor{modp};
