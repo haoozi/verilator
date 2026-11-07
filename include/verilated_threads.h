@@ -97,10 +97,13 @@ public:
     // false while it's still waiting on more dependencies.
     bool signalUpstreamDone(bool evenCycle) {
         if (evenCycle) {
+            // A waiter can destroy the vertex as soon as completion is published.
+            // Read all non-atomic state before the release; use only locals after it.
+            const uint32_t upstreamDepCount = m_upstreamDepCount;
             const uint32_t upstreamDepsDone
                 = 1 + m_upstreamDepsDone.fetch_add(1, std::memory_order_release);
-            assert(upstreamDepsDone <= m_upstreamDepCount);
-            return (upstreamDepsDone == m_upstreamDepCount);
+            assert(upstreamDepsDone <= upstreamDepCount);
+            return (upstreamDepsDone == upstreamDepCount);
         }
         const uint32_t upstreamDepsDone_prev
             = m_upstreamDepsDone.fetch_sub(1, std::memory_order_release);
