@@ -93,8 +93,12 @@
 #include "V3Randomize.h"
 #include "V3Reloop.h"
 #include "V3Reorder.h"
+#include "V3RepCutChunk.h"
 #include "V3RepCutGraph.h"
+#include "V3RepCutOptimize.h"
 #include "V3RepCutPlan.h"
+#include "V3RepCutProgram.h"
+#include "V3RepCutShare.h"
 #include "V3Sampled.h"
 #include "V3Sched.h"
 #include "V3Scope.h"
@@ -359,6 +363,16 @@ static void process() {
             // No more AstAlias after linkDotScope
             V3Scope::scopeAll(v3Global.rootp());
             V3LinkDot::linkDotScope(v3Global.rootp());
+            if (v3Global.opt.debugSelfTest()) {
+                AstScope* const scopep = v3Global.rootp()->topScopep()->scopep();
+                V3RepCut::selfTestCopies(*scopep);
+                V3RepCut::selfTestStateRelease(*scopep);
+                V3RepCut::selfTestSelections(*scopep);
+                V3RepCut::selfTestLocalExpressions(*scopep);
+                V3RepCut::selfTestProgram(*scopep);
+                V3RepCut::SharedPhase::selfTest();
+                V3RepCut::selfTestChunks(*scopep);
+            }
             // FSM coverage needs scopes, but should otherwise run as early as
             // possible before later lowering rewrites user-visible clocked
             // case structure. This entry point runs two adjacent phases:
