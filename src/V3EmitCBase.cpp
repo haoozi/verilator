@@ -137,6 +137,7 @@ void EmitCBaseVisitorConst::emitCDefaultConstructor(const AstNodeModule* const m
 void EmitCBaseVisitorConst::emitCFuncHeader(const AstCFunc* funcp, const AstNodeModule* modp,
                                             bool withScope) {
     if (funcp->slow()) putns(funcp, "VL_ATTR_COLD ");
+    if (funcp->noInline()) putns(funcp, "VL_ATTR_NOINLINE ");
     if (!funcp->isDestructor()) {
         putns(funcp, funcp->rtnTypeVoid());
         puts(" ");

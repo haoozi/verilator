@@ -39,6 +39,10 @@ public:
     // Blank lines preserve empty partitions. Revalidate against this graph;
     // input file ordering is never treated as an execution order.
     static bool read(const Graph& graph, std::istream& input, Plan& result, std::string& error);
+    // Invoke the external partitioner only for nontrivial automatic plans.
+    // Validate generated memberships before constructing the executable plan.
+    static bool partition(const Graph& graph, const std::string& base, Plan& result,
+                          std::string& error);
     void dump(const Graph& graph, const std::string& base) const;
     static void selfTest();
 

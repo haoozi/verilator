@@ -93,12 +93,9 @@
 #include "V3Randomize.h"
 #include "V3Reloop.h"
 #include "V3Reorder.h"
-#include "V3RepCutChunk.h"
+#include "V3RepCut.h"
 #include "V3RepCutGraph.h"
-#include "V3RepCutOptimize.h"
 #include "V3RepCutPlan.h"
-#include "V3RepCutProgram.h"
-#include "V3RepCutShare.h"
 #include "V3Sampled.h"
 #include "V3Sched.h"
 #include "V3Scope.h"
@@ -363,16 +360,6 @@ static void process() {
             // No more AstAlias after linkDotScope
             V3Scope::scopeAll(v3Global.rootp());
             V3LinkDot::linkDotScope(v3Global.rootp());
-            if (v3Global.opt.debugSelfTest()) {
-                AstScope* const scopep = v3Global.rootp()->topScopep()->scopep();
-                V3RepCut::selfTestCopies(*scopep);
-                V3RepCut::selfTestStateRelease(*scopep);
-                V3RepCut::selfTestSelections(*scopep);
-                V3RepCut::selfTestLocalExpressions(*scopep);
-                V3RepCut::selfTestProgram(*scopep);
-                V3RepCut::SharedPhase::selfTest();
-                V3RepCut::selfTestChunks(*scopep);
-            }
             // FSM coverage needs scopes, but should otherwise run as early as
             // possible before later lowering rewrites user-visible clocked
             // case structure. This entry point runs two adjacent phases:
@@ -449,7 +436,6 @@ static void process() {
             // directly from force discovery to assign/deassign lowering without rediscovery.
             V3Force::forceAndAssignAll(v3Global.rootp());
 
-            // DFG optimization
             if (v3Global.opt.fDfg()) V3DfgOptimizer::optimize(v3Global.rootp());
 
             // Gate-based logic elimination; eliminate signals and push constant across cell
@@ -469,6 +455,22 @@ static void process() {
             // Remove unused vars
             V3Const::constifyAll(v3Global.rootp());
             V3Dead::deadifyAllScoped(v3Global.rootp());
+
+            // Partition optimized native expressions before NBA lowering and task
+            // formation. Extraction still creates individual operation vertices;
+            // native DFG/Gate optimization must see the original procedures.
+            if (v3Global.opt.repcut() || v3Global.opt.repcutDumpGraph()) {
+                V3RepCut::dumpGraph(v3Global.rootp());
+                if (v3Global.opt.repcut()) {
+                    // Clocked consumers have moved into private partition code.
+                    // Revisit sharing and liveness in the remaining native logic
+                    // before scheduling makes its evaluation boundaries fixed.
+                    if (v3Global.opt.fDfg()) V3DfgOptimizer::optimize(v3Global.rootp());
+                    if (v3Global.opt.fGate()) V3Gate::gateAll(v3Global.rootp());
+                    V3Const::constifyAll(v3Global.rootp());
+                    V3Dead::deadifyAllScoped(v3Global.rootp());
+                }
+            }
 
             // Reorder assignments in pipelined blocks
             if (v3Global.opt.fReorder()) V3Reorder::reorderAll(v3Global.rootp());
@@ -635,6 +637,12 @@ static void process() {
             // This should happen as late as possible (after all optimizations)
             // as it relies on cost estimates.
             V3ExecGraph::implement(v3Global.rootp());
+        }
+
+        if (!v3Global.opt.serializeOnly() && v3Global.opt.repcut()) {
+            // Dependency operands must remain visible through optimization and
+            // ExecGraph cost analysis, but do not belong in the runtime ABI.
+            V3RepCut::removeDependencyArgs(v3Global.rootp());
         }
 
         if (!v3Global.opt.lintOnly() && !v3Global.opt.serializeOnly()

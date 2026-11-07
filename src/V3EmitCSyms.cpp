@@ -278,7 +278,7 @@ class EmitCSyms final : EmitCBaseVisitorConst {
                                           const AstVar* const varp, const int udim, const int pdim,
                                           const std::string& bounds) {
         const std::string varName = VIdProtect::protectIf(scopep->nameDotless(), scopep->protect())
-                                    + "." + protect(varp->name());
+                                    + "." + varp->nameProtect();
         const std::string vlEnumType = varp->vlEnumType();
         const bool needsEntSize = needsEmittedEntSize(vlEnumType);
 
@@ -392,7 +392,7 @@ class EmitCSyms final : EmitCBaseVisitorConst {
         stmt += V3OutFormatter::quoteNameControls(protect(svd.m_varBasePretty)) + '"';
 
         const std::string varName = VIdProtect::protectIf(scopep->nameDotless(), scopep->protect())
-                                    + "." + protect(varp->name());
+                                    + "." + varp->nameProtect();
 
         assert(!varp->isParam());  // Forceable params do not make sense
         stmt += ", &(";
@@ -874,9 +874,36 @@ void EmitCSyms::emitSymHdr() {
     if (v3Global.opt.mtasks()) {
         puts("\n// MULTI-THREADING\n");
         puts("VlThreadPool* __Vm_threadPoolp;\n");
-        puts("bool __Vm_even_cycle__ico = false;\n");
-        puts("bool __Vm_even_cycle__act = false;\n");
-        puts("bool __Vm_even_cycle__nba = false;\n");
+        if (!v3Global.opt.repcut()) {
+            puts("bool __Vm_even_cycle__ico = false;\n");
+            puts("bool __Vm_even_cycle__act = false;\n");
+            puts("bool __Vm_even_cycle__nba = false;\n");
+        } else {
+            std::set<std::string> graphNames;
+            v3Global.rootp()->topModulep()->foreach(
+                [&](const AstExecGraph* graphp) { graphNames.insert(graphp->name()); });
+            for (const std::string& name : graphNames) {
+                puts("bool __Vm_even_cycle__" + name + " = false;\n");
+                if (v3Global.opt.threads() > 1) {
+                    puts("bool __Vm_fixedRegistered__" + name + " = false;\n");
+                    puts("VlFixedTask __Vm_fixedTasks__" + name + "["
+                         + cvtToStr(v3Global.opt.threads() - 1) + "];\n");
+                }
+            }
+            if (v3Global.opt.threads() > 1) {
+                // Clone hooks can run before the first evaluation or after the
+                // old pool has gone. Clear every slot without touching workers.
+                puts("void __VresetForClone() {\n");
+                for (const std::string& name : graphNames) {
+                    puts("__Vm_fixedRegistered__" + name + " = false;\n");
+                    for (int i = 0; i < v3Global.opt.threads() - 1; ++i) {
+                        puts("__Vm_fixedTasks__" + name + "[" + cvtToStr(i)
+                             + "].resetForClone();\n");
+                    }
+                }
+                puts("}\n");
+            }
+        }
     }
 
     if (v3Global.opt.profExec()) {
@@ -1186,11 +1213,11 @@ std::vector<std::string> EmitCSyms::getSymCtorStmts() {
                     = VN_CAST(varp->dtypeSkipRefp(), NodeUOrStructDType)) {
                     if (!sdtypep->packed()) {
                         addUOrStructMemberVars(stmts, svd, scopep, svd.m_varBasePretty,
-                                               protect(varp->name()), sdtypep);
+                                               varp->nameProtect(), sdtypep);
                     }
                 } else if (VN_IS(varp->dtypeSkipRefp(), UnpackArrayDType)) {
                     addUnpackedArrayUOrStructMemberVars(stmts, svd, scopep, svd.m_varBasePretty,
-                                                        protect(varp->name()), varp->dtypep());
+                                                        varp->nameProtect(), varp->dtypep());
                 }
             }
         }

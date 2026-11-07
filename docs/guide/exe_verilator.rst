@@ -1344,7 +1344,8 @@ Summary:
    not split inside a function.
 
    Defaults to the value of :vlopt:`--output-split`, unless explicitly
-   specified.
+   specified. With :vlopt:`--repcut`, defaults
+   to 4,000 independently of :vlopt:`--output-split`.
 
 .. option:: --output-split-ctrace <statements>
 
@@ -1634,6 +1635,192 @@ Summary:
    transformation. The default limit is 40. A smaller number may slightly
    improve C++ compilation time on designs where these sequences are
    common; however, the effect on model performance requires benchmarking.
+
+.. option:: --repcut
+
+   For internal use only. Enable experimental RepCut partitioning and kernel
+   generation through the ordinary model ``eval()`` API. Disabled by default:
+   without this option, Verilator uses its original partitioner and backend,
+   including when :vlopt:`--threads` is greater than one. Use ``--no-repcut``
+   to override an earlier ``--repcut`` option.
+
+   By default, Verilator exports the dependency graph and invokes ``rcp`` from
+   :envvar:`PATH`, which also needs ``MtKaHyPar`` on :envvar:`PATH`. Neither
+   tool is needed to build Verilator or generate ordinary models. Use
+   :vlopt:`--repcut-partitioner` to select the partitioner executable.
+   A single-threaded model uses one partition directly. When the graph has no
+   more sinks than simulation threads, each sink's complete dependency cone
+   gets its own partition; empty worker slots are retained. These trivial
+   cases, including empty graphs, bypass the external tool.
+
+   Automatic partitioning creates one partition per simulation thread, using
+   seed 42, one partitioner thread, and an imbalance target of 0.03. The graph
+   uses the unit operation weights described under :vlopt:`--repcut-dump-graph`.
+   The partitioner thread count is independent of :vlopt:`--threads`, which sets
+   simulation parallelism. Other partitioning settings can be selected by
+   supplying a compatible executable through :vlopt:`--repcut-partitioner`.
+   Generated membership is validated before code generation; a failed
+   partitioner invocation stops compilation instead of reusing old results or
+   falling back to another backend.
+   Artifacts are retained under ``<prefix>__repcut_early.partition`` inside
+   :vlopt:`--Mdir`; the membership is ``rcp_output.txt``. External-tool output
+   is saved to ``<prefix>__repcut_early.partition.log``. Hierarchical models
+   partition independently in their own output directories.
+
+   Automatic invocation requires a POSIX shell and keeps the elaborated design
+   in memory while the partitioner runs. Allow enough memory for both the
+   compiler and the partitioner at the same time.
+
+   RepCut retains ordinary activation, event regions, and nonblocking
+   assignment publication. Pure candidate kernels use fixed partition workers.
+   Supported effect arguments and predicates are captured there, with effects
+   executed on the caller; original procedures handle external access and
+   constructs outside the kernel subset. Each activated kernel dispatch
+   completes before the scheduler continues.
+   Partition zero runs on the calling thread and the remaining partitions use
+   dedicated worker slots. Functions within a partition remain split according
+   to :vlopt:`--output-split-cfuncs`.
+
+   Eligible clocked RTL evaluates candidates in RepCut partitions. Verilator
+   handles their original sensitivity lists and state publication. This allows
+   multiple clocks, asynchronous resets, and generated or gated clocks.
+   Partitioning uses fine data and control dependencies after native DFG and
+   gate optimization. Eligible kernels retain optimized expression trees and
+   slice clocked bodies by owned state, memory writes, and supported effects.
+   These source bodies are not partitioning units. Kernels requiring imperative
+   local-variable analysis or exceeding the expression budget use the existing
+   graph lowering path. Both paths preserve private candidates until native state
+   publication and split worker functions for C++ compilation.
+   Remaining native combinational logic is reoptimized after kernel emission
+   so logic whose consumers moved into partitions can be removed. Surviving
+   combinational procedures remain under Verilator's scheduler. Procedures
+   outside the kernel expression and statement subset also remain native;
+   their stored results are explicit ``EXTERNAL`` kernel inputs. Combinational
+   feedback uses native convergence, without merging graph nodes.
+
+   Supported clocked displays, assertion actions, ``$stop``, and ``$finish``
+   capture their activation and packed argument values in the partitions.
+   The calling thread executes each captured effect once after the evaluation
+   join, preserving statement order within a procedure and pre-publication
+   argument values. Effect capture uses the same per-domain evaluation dispatch.
+   Postponed effects and unsupported or reentrant operations retain native
+   scheduling. Independent processes may execute in a different order than
+   with the ordinary scheduler.
+
+   Coverage increments retain their original guards under native scheduling
+   and are not duplicated in partition kernels. SystemC port values are captured
+   on the calling thread before partition evaluation; workers use ordinary
+   model storage. Native hierarchical models evaluate their kernels sequentially
+   using the shared fixed workers, with separate memberships for each model.
+   An ordinary hierarchical parent may evaluate RepCut children concurrently;
+   those children reserve available workers until their kernels complete.
+
+   The graph report lists retained procedures and cycle boundaries. ``complete``
+   describes the exported kernel graph, not whole-design normalization.
+   In the ownership table, ``native`` denotes native evaluation or publication.
+   ``native_output_reference`` plan entries describe partition membership and
+   are not separately dispatched output kernels. Worker functions still honor
+   :vlopt:`--output-split-cfuncs`.
+
+   Equivalent clock sensitivities share a kernel activation and its partition
+   dispatch. Unconditional private clock aliases to primary inputs are resolved
+   when gate optimization is enabled. Distinct event expressions and externally
+   writable clock aliases retain separate activations. Shared computation within
+   an activation is evaluated once per partition, while function splitting still
+   bounds generated worker functions.
+
+   Closed multithreaded models with primary-input edge clocks may batch
+   independent native compute kernels into one fixed-worker dispatch. Each
+   kernel runs only when its original clock event fires. Nonblocking
+   assignment ordering and each clock's output-settling conditions are
+   preserved, including when the clocks fire separately.
+   Models with retained procedures, timing/foreign observers, tracing,
+   coverage, VPI, public state, or SystemC storage keep separate dispatches.
+
+   :vlopt:`--prof-pgo` records costs for emitted partition tasks. Procedures
+   retained in serial scheduling have no MTask profile records. Recompile with
+   the profile data and the same partitioner settings to use these costs;
+   the generated partition assignments must match the profiled model. Such
+   profiles apply to runtime compilation, not the ordinary MTask layout used
+   by export-only compilation.
+
+   This adapter is under development. Focused regressions cover tracing, VPI
+   reads and writes, timing, context DPI callbacks, coverage bins, save/restore,
+   and native procedures using dynamic values. These checks do not establish
+   general feature parity or performance parity with the ordinary scheduler.
+
+   RepCut normally registers each worker entry point once per model and
+   evaluation phase. Subsequent evaluations use atomic start signals and
+   completion notifications, without enqueueing jobs or taking queue mutexes.
+   When nested inside an active ordinary hierarchical worker schedule, RepCut
+   instead uses ordinary worker reservations and queues to avoid assigning
+   concurrent child kernels to the same worker. Assigned fixed workers poll while
+   the model remains alive, yielding periodically when idle; they may consume
+   CPU time between evaluations. Models sharing a context must be evaluated
+   sequentially. Destroying a model releases its fixed worker registrations.
+
+   Threaded models group candidate storage and published state by partition
+   ownership, with separate cache-line-aligned groups for evaluation temporaries,
+   state written during publication, and state updated early. Within
+   each region, values read by the same workers are kept together, preserving
+   first-use order among fields with the same alignment requirements. Ownership
+   includes temporaries introduced by dataflow optimization. State publication
+   currently uses individual assignments.
+
+.. option:: --repcut-dump-graph
+
+   For internal use only. Export a word-level candidate-kernel graph after
+   dataflow and gate optimization and before delayed-assignment lowering.
+   Procedures outside the supported kernel subset retain ordinary Verilator
+   scheduling. This option does not enable parallel simulation or require an
+   external partitioner.
+
+   Writes ``<prefix>__repcut_early.nodes.tsv``, a ``.report.txt`` coverage
+   report, an empty ``.clocks.tsv`` compatibility table, and a ``.memories.tsv`` memory
+   inventory in the output directory. The additional ``.storage.tsv``,
+   ``.domains.tsv``, and ``.bindings.tsv`` tables record storage identities,
+   scheduler sensitivity identities, sink destinations, memory-write priority, and constant
+   value words independently of diagnostic labels. These internal IDs are
+   local to one graph. The ``.regions.tsv`` and ``.controls.tsv`` tables
+   describe branch nesting, predicate polarity, and controlled operations.
+   Ordered data operands remain in ``.nodes.tsv``; the partitioner graph
+   includes both data and control dependencies. Procedural merges are
+   recorded as ``JOIN`` nodes, distinct from conditional expressions.
+   Complete acyclic kernel graphs also produce a ``.graph`` file; incomplete
+   graphs produce a ``.partial`` file instead. Retained procedures and native
+   convergence boundaries do not make the kernel graph incomplete.
+   Partial exports must not be used as complete partitioning problems.
+   Weights are provisional unit operation costs. Initialization, finalization,
+   and post-update settling are outside this prototype; output nodes describe
+   pre-edge observations. Initialized X-replacement values are explicit graph
+   inputs, not newly sampled values. Read the coverage report before
+   interpreting results.
+
+   Integral packed arrays and packed structures, signed and unsigned division
+   and remainder, and one-dimensional unpacked memories are supported.
+   Unpacked memory indices may have nonzero or ascending declaration bounds.
+   Values and memories written only during initialization retain their ordinary
+   Verilator initialization. This includes constant lookup tables. Clocked
+   processes may use blocking temporaries whose accesses are confined to that
+   process; deferred state assignments still read the appropriate old state.
+
+   Supported clocked DPI procedures retain their original scheduling and
+   foreign-call ABI. Independent ``CALLBACK`` sinks capture read-only input
+   values in partitions before the original procedure executes on the caller.
+   In ``.bindings.tsv``, ``aux`` identifies the procedure and ``priority``
+   identifies the captured input within it. Foreign procedure bodies and their
+   C++ execution costs are outside the partitioner graph. Context or reentrant
+   callbacks remain entirely under ordinary scheduling.
+
+.. option:: --repcut-partitioner <executable>
+
+   For internal use only. Select the external ``rcp`` executable invoked by
+   :vlopt:`--repcut`. Defaults to ``rcp`` found on :envvar:`PATH`. This accepts
+   an executable name or path, without additional command-line arguments.
+   The selected tool must implement the RepCut CLI options ``--graph_file``,
+   ``--work_directory``, ``--nparts``, ``--threads``, ``--seed``, and
+   ``--target_ib``. It writes ``rcp_output.txt`` in its working directory.
+   This option alone does not enable RepCut.
 
 .. option:: --replication-limit <value>
 

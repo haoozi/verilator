@@ -43,6 +43,7 @@
 #include "V3EmitCBase.h"
 #include "V3EmitV.h"
 #include "V3Order.h"
+#include "V3RepCut.h"
 #include "V3SenExprBuilder.h"
 #include "V3Stats.h"
 
@@ -1110,6 +1111,9 @@ void schedule(AstNetlist* netlistp) {
         V3Order::TrigToSenMap trigToSen;
         invertAndMergeSenTreeMap(trigToSen, trigMap);
 
+        if (name == "nba" && v3Global.opt.repcut())
+            V3RepCut::batchNativeKernels(netlistp, logic, trigToSen);
+
         AstSenTree* const dpiExportTriggered
             = dpiExportTriggerVscp
                   ? trigKit.newExtraTriggerSenTree(trigVscp, dpiExportTriggerIndex)
@@ -1119,7 +1123,8 @@ void schedule(AstNetlist* netlistp) {
 
         const auto& timingDomains = timingKit.remapDomains(trigMap);
         AstCFunc* const funcp = V3Order::order(
-            netlistp, logic, trigToSen, name, name == "nba" && v3Global.opt.mtasks(), false,
+            netlistp, logic, trigToSen, name,
+            name == "nba" && v3Global.opt.mtasks() && !(v3Global.opt.repcut()), false,
             [&](const AstVarScope* vscp, std::vector<AstSenTree*>& out) {
                 auto it = timingDomains.find(vscp);
                 if (it != timingDomains.end()) out = it->second;

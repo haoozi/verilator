@@ -36,6 +36,7 @@ class AstScope;
 class ExecMTask final : public V3GraphVertex {
     VL_RTTI_IMPL(ExecMTask, V3GraphVertex)
 private:
+    static constexpr uint32_t UNASSIGNED_THREAD = 0xffffffff;
     const uint32_t m_id;  // Unique ID of this ExecMTask.
     static std::atomic<uint32_t> s_nextId;  // Next ID to use
     AstCFunc* const m_funcp;  // The function that contains the task body
@@ -47,6 +48,7 @@ private:
     uint32_t m_cost = 0;
     uint64_t m_predictStart = 0;  // Predicted start time of task
     int m_threads = 1;  // Threads used by this mtask
+    uint32_t m_fixedThread = UNASSIGNED_THREAD;  // Required schedule slot, or unconstrained
     VL_UNCOPYABLE(ExecMTask);
 
     static AstCFunc* createCFunc(AstExecGraph* execGraphp, AstScope* scopep, AstNodeStmt* stmtsp,
@@ -66,6 +68,9 @@ public:
     string hashName() const { return m_hashName; }
     void threads(int threads) { m_threads = threads; }
     int threads() const { return m_threads; }
+    bool hasFixedThread() const { return m_fixedThread != UNASSIGNED_THREAD; }
+    uint32_t fixedThread() const { return m_fixedThread; }
+    void fixedThread(uint32_t thread) { m_fixedThread = thread; }
     void dump(std::ostream& str) const;
 
     static uint32_t numUsedIds() VL_MT_SAFE { return s_nextId; }

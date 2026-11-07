@@ -188,6 +188,7 @@ class V3Options final {
 public:
 private:
     // TYPES
+    enum class RepCutPublication : uint8_t { OFF, ON, AUTO };
     using DebugLevelMap = std::map<const std::string, unsigned>;
 
     // MEMBERS (general options)
@@ -284,6 +285,11 @@ private:
     bool m_quietExit = false;       // main switch: --quiet-exit
     bool m_quietStats = false;      // main switch: --quiet-stats
     bool m_relativeIncludes = false;  // main switch: --relative-includes
+    bool m_repcut = false;          // main switch: --repcut
+    bool m_repcutDumpGraph = false;  // main switch: --repcut-dump-graph
+    bool m_repcutPriorityTables = true;  // main switch: --repcut-priority-tables
+    RepCutPublication m_repcutPublication = RepCutPublication::AUTO; // --repcut-parallel-publish[-auto]
+    bool m_repcutShareDomains = true;  // main switch: --repcut-share-domains
     bool m_reportUnoptflat = false;  // main switch: --report-unoptflat
     bool m_savable = false;         // main switch: --savable
     VOptionBool m_schedZeroDelay;  // main switch: --sched-zero-delay
@@ -378,6 +384,7 @@ private:
     string      m_pipeFilter;   // main switch: --pipe-filter
     string      m_prefix;       // main switch: --prefix
     string      m_protectKey;   // main switch: --protect-key
+    string      m_repcutPartitioner = "rcp";  // main switch: --repcut-partitioner
     string      m_topModule;    // main switch: --top-module
     string      m_unusedRegexp; // main switch: --unused-regexp
     string      m_waiverOutput;  // main switch: --waiver-output {filename}
@@ -468,6 +475,8 @@ private:
     VL_UNCOPYABLE(V3Options);
 
 public:
+    static constexpr int REPCUT_DEFAULT_CFUNCS = 4000;
+
     V3Options();
     ~V3Options();
     void setDebugMode(int level);
@@ -582,6 +591,15 @@ public:
     bool traceStructs() const { return m_traceStructs; }
     bool traceUnderscore() const { return m_traceUnderscore; }
     bool main() const { return m_main; }
+    const string& repcutPartitioner() const { return m_repcutPartitioner; }
+    bool repcut() const { return m_repcut; }
+    bool repcutParallelPublish() const { return m_repcutPublication == RepCutPublication::ON; }
+    bool repcutParallelPublishAuto() const {
+        return m_repcutPublication == RepCutPublication::AUTO;
+    }
+    bool repcutPriorityTables() const { return m_repcutPriorityTables; }
+    bool repcutShareDomains() const { return m_repcutShareDomains; }
+    bool repcutDumpGraph() const { return m_repcutDumpGraph; }
     bool outFormatOk() const { return m_outFormatOk; }
     bool jsonOnly() const { return m_jsonOnly; }
     bool keepTempFiles() const { return (V3Error::debugDefault() != 0); }

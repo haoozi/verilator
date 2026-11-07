@@ -1039,8 +1039,14 @@ void V3Options::notify() VL_MT_DISABLED {
     if (m_timing.isDefault() && (v3Global.opt.jsonOnly() || v3Global.opt.lintOnly()))
         v3Global.opt.m_timing.setTrueOrFalse(true);
 
+    // Partitioning is a model-generation option. Analysis-only invocations
+    // must neither require external tools nor emit partition artifacts.
+    if (dpiHdrOnly() || lintOnly() || preprocOnly() || serializeOnly()) m_repcut = false;
+
     // Default split limits if not specified
-    if (m_outputSplitCFuncs < 0) m_outputSplitCFuncs = m_outputSplit;
+    if (m_outputSplitCFuncs < 0) {
+        m_outputSplitCFuncs = repcut() ? REPCUT_DEFAULT_CFUNCS : m_outputSplit;
+    }
     if (m_outputSplitCTrace < 0) m_outputSplitCTrace = m_outputSplit;
 
     if (v3Global.opt.main() && v3Global.opt.systemC()) {
@@ -1724,6 +1730,19 @@ void V3Options::parseOptsList(FileLine* fl, const string& optdir, int argc,
         m_reloopLimit = std::atoi(valp);
         if (m_reloopLimit < 2) fl->v3error("--reloop-limit must be >= 2: " << valp);
     });
+    DECL_OPTION("-repcut", OnOff, &m_repcut);
+    DECL_OPTION("-repcut-dump-graph", OnOff, &m_repcutDumpGraph).notForRerun();
+    DECL_OPTION("-repcut-parallel-publish", CbOnOff, [this](bool flag) {
+        m_repcutPublication = flag ? RepCutPublication::ON : RepCutPublication::OFF;
+    }).undocumented();
+    DECL_OPTION("-repcut-parallel-publish-auto", CbCall, [this]() {
+        m_repcutPublication = RepCutPublication::AUTO;
+    }).undocumented();
+    DECL_OPTION("-repcut-partitioner", CbVal, [this, &optdir](const char* valp) {
+        m_repcutPartitioner = parseFileArg(optdir, valp);
+    });
+    DECL_OPTION("-repcut-priority-tables", OnOff, &m_repcutPriorityTables).undocumented();
+    DECL_OPTION("-repcut-share-domains", OnOff, &m_repcutShareDomains).undocumented();
     DECL_OPTION("-report-unoptflat", OnOff, &m_reportUnoptflat);
     DECL_OPTION("-replication-limit", CbVal, [this, fl](const char* valp) {
         m_replicationLimit = std::atoi(valp);

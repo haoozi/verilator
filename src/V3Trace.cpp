@@ -1196,6 +1196,17 @@ class TraceVisitor final : public VNVisitor {
     void visit(AstStmtExpr* nodep) override {
         if (!m_finding && !nodep->user2()) {
             if (AstCCall* const callp = VN_CAST(nodep->exprp(), CCall)) {
+                if (m_cfuncp && m_cfuncp->isRepCut() && v3Global.opt.threads() > 1) {
+                    // RepCut chunks can run on different workers. Propagate their
+                    // writes through the call graph instead of inserting shared
+                    // activity setters inside them. The ordinary caller's activity
+                    // point runs after the dispatch joins, including calls reached
+                    // through the ExecGraph's analysis-only placeholders.
+                    new V3GraphEdge{&m_graph, getCFuncVertexp(m_cfuncp),
+                                    getCFuncVertexp(callp->funcp()), 1};
+                    iterateChildren(nodep);
+                    return;
+                }
                 UINFO(8, "   CCALL " << callp);
                 // See if there are other calls in same statement list;
                 // If so, all funcs might share the same activity code
@@ -1221,7 +1232,12 @@ class TraceVisitor final : public VNVisitor {
         V3GraphVertex* const funcVtxp = getCFuncVertexp(nodep);
         if (!m_finding) {  // If public, we need a unique activity code to allow for sets
                            // directly in this func
-            if (nodep->funcPublic() || nodep->dpiExportImpl() || nodep == v3Global.rootp()->evalp()
+            // RepCut's internal compilation boundaries are marked public to
+            // preserve them, but their callers already account for activity.
+            // In particular, a partition entry must not set shared trace flags.
+            const bool publicEntry
+                = nodep->funcPublic() && !(nodep->isRepCut() && v3Global.opt.threads() > 1);
+            if (publicEntry || nodep->dpiExportImpl() || nodep == v3Global.rootp()->evalp()
                 || nodep->isCoroutine()) {
                 // Cannot treat a coroutine as slow, it may be resumed later
                 const bool slow = nodep->slow() && !nodep->isCoroutine();
@@ -1232,6 +1248,12 @@ class TraceVisitor final : public VNVisitor {
         VL_RESTORER(m_cfuncp);
         m_cfuncp = nodep;
         iterateChildren(nodep);
+    }
+    void visit(AstCCall* nodep) override {
+        // These arguments expose scheduling dependencies, not runtime writes.
+        // Actual writes in the callee already contribute trace activity. Counting
+        // the markers as well can invent multiple writers for a structured value.
+        if (!nodep->funcp()->repcutDependencyArgs()) iterateChildren(nodep);
     }
     void visit(AstTraceDecl* nodep) override {
         UINFO(8, "   TRACE " << nodep);

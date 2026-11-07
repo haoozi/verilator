@@ -1042,6 +1042,107 @@ improvement would be to emit an unique class for each instance of a module,
 and sort its variables optimally for that instance's code stream.
 
 
+RepCut Tuning
+-------------
+
+For internal use only. The following options support debugging and performance
+comparisons of the experimental RepCut backend. They are accepted on the command
+line but omitted from normal help, the user option reference, and typo
+suggestions. They do not enable RepCut by themselves; use ``--repcut`` to select
+that backend.
+
+Default behavior uses automatic parallel publication, priority tables, and
+sharing across event domains. Keep these overrides when reproducing a result,
+including in ``--dump-inputs`` command lines.
+
+.. option:: --repcut-parallel-publish
+
+   For internal use only. With :vlopt:`--repcut` and multiple threads, publish
+   candidate state on its partition owner. The ordinary scheduler orders publication
+   after old-state readers and before consumers of the new state. Memory
+   writes retain source priority, and SystemC channel writes remain on the
+   calling thread. Published storage is grouped by owner to reduce false
+   sharing. Generated functions retain their compilation size limit.
+
+   In closed models, a scalar with one writer and no old-state reader outside
+   its owning partition and clock domain can publish at the end of that
+   partition's compute task. Other state retains a separate publication phase;
+   memories are not eligible for this local publication shortcut.
+
+   Wide primary outputs that depend only on locally published state can also
+   be formed inside the owning worker before its existing completion. This
+   requires exclusive ownership of each complete C++ output word, matching
+   clock conditions, and no other readers of that output. Shared words and
+   unproven dependencies retain ordinary scheduling. Output helpers retain
+   the compilation size limit; this shortcut adds no synchronization phase.
+
+   This experimental option adds a separate fixed-worker publication dispatch
+   for the remaining state in each active domain. When all publication writes
+   in a domain have an enable, the dispatch is skipped if those enables are all
+   false. Publication writes without enables always require dispatch. Its
+   synchronization cost and locality benefit depend on the design. By default,
+   :vlopt:`--repcut-parallel-publish-auto` chooses which domains use parallel
+   publication. Use ``--no-repcut-parallel-publish`` to keep publication on
+   the calling thread. These options have no effect on single-threaded models.
+
+.. option:: --repcut-parallel-publish-auto
+
+   For internal use only. Choose parallel publication separately for each
+   native clock domain using a conservative estimate of copied values,
+   shared enable checks, owner balance, and additional synchronization.
+   Small or poorly balanced domains retain publication on the calling
+   thread. SystemC channel writes always remain on the calling thread. This
+   is the default publication policy for multithreaded native RepCut models.
+
+   This experimental policy uses static estimates, without profiling or
+   runtime adaptation. Actual input activity and cache behavior may make
+   either placement faster. The estimate discounts conditional
+   copies to one-quarter activity, allows 512 scalar-copy equivalents for
+   dispatch, and requires a further 25% serial-work margin. These allowances
+   are heuristics, not calibrated execution times or a performance guarantee.
+
+   Native emission writes ``<prefix>__repcut_early.publication.tsv`` with
+   each domain's decision, reason, and work per owner. Four work units
+   represent an unconditional scalar copy or enable check; a wide copy
+   counts its 32-bit words. The last of this option,
+   :vlopt:`--repcut-parallel-publish`, and
+   ``--no-repcut-parallel-publish`` takes precedence. Neither publication
+   mode enables RepCut by itself; single-threaded and ordinary emission are
+   unaffected.
+
+.. option:: --repcut-priority-tables
+
+   For internal use only. Share repeated keyed
+   priority selections within an emitted partition. Eligible selections use
+   partition-private lookup tables while retaining priority, enable and default
+   behavior. Partition memberships and synchronization are unchanged.
+
+   Enabled by default; use
+   ``--no-repcut-priority-tables`` to disable it. This bounded optimization
+   applies to repeated selection chains, not arbitrary control flow. It does
+   not change the graph supplied to the partitioner. This option alone does
+   not enable RepCut.
+
+.. option:: --repcut-share-domains
+
+   For internal use only. Enabled by default. With :vlopt:`--repcut`
+   and multiple threads, share eligible pure combinational computations across
+   sensitivity domains assigned to the same partition. A shared computation runs
+   once when any consuming domain is active. Original event guards, state
+   publication, and ordered effects are preserved. Values are not cached across
+   evaluations, and functions remain bounded by :vlopt:`--output-split-cfuncs`.
+   Partitions with too little common computation retain their original
+   domain-local evaluation. In other partitions, eligible shared computations
+   and their dependencies remain together.
+
+   This option applies only to eligible native models using batched partition
+   evaluation. Single-threaded models and models outside that path are unchanged.
+   It does not change the graph supplied to the partitioner. Sharing may increase
+   temporary storage and call overhead when consuming domains rarely activate
+   together. Use :vlopt:`--no-repcut-share-domains` to disable sharing and
+   compare performance on the target design.
+
+
 Verilated Flow
 --------------
 

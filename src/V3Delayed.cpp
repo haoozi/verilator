@@ -1104,6 +1104,9 @@ class DelayedVisitor final : public VNVisitor {
         iterateChildren(nodep);
     }
     void visit(AstCFunc* nodep) override {
+        // RepCut phases already express private evaluation and explicit publication.
+        // Their generated stores are not HDL blocking assignments competing with NBAs.
+        if (nodep->isRepCut()) return;
         VL_RESTORER(m_cfuncp);
         m_cfuncp = nodep;
         iterateChildren(nodep);
