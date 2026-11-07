@@ -166,6 +166,8 @@ set(HEADERS
     V3Randomize.h
     V3Reloop.h
     V3Reorder.h
+    V3RepCutGraph.h
+    V3RepCutPlan.h
     V3Rtti.h
     V3Sampled.h
     V3Sched.h
@@ -336,6 +338,8 @@ set(COMMON_SOURCES
     V3Randomize.cpp
     V3Reloop.cpp
     V3Reorder.cpp
+    V3RepCutGraph.cpp
+    V3RepCutPlan.cpp
     V3Sampled.cpp
     V3Sched.cpp
     V3SchedAcyclic.cpp
