@@ -1045,15 +1045,15 @@ and sort its variables optimally for that instance's code stream.
 RepCut Tuning
 -------------
 
-For internal use only. The following options support debugging and performance
-comparisons of the experimental RepCut backend. They are accepted on the command
-line but omitted from normal help, the user option reference, and typo
-suggestions. They do not enable RepCut by themselves; use ``--repcut`` to select
-that backend.
+For internal use only. The following options support debugging and
+performance comparisons of the experimental RepCut backend. They are
+accepted on the command line but omitted from normal help, the user option
+reference, and typo suggestions. They do not enable RepCut by themselves;
+use ``--repcut`` to select that backend.
 
 Default behavior uses automatic parallel publication, priority tables, and
-sharing across event domains. Keep these overrides when reproducing a result,
-including in ``--dump-inputs`` command lines.
+sharing across event domains. Keep these overrides when reproducing a
+result, including in ``--dump-inputs`` command lines.
 
 .. option:: --repcut-parallel-publish
 
