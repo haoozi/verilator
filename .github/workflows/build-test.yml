@@ -296,6 +296,12 @@ jobs:
           - {os: ubuntu-22.04, cc: gcc, reloc: 0, suite: vltmt-1}
           - {os: ubuntu-22.04, cc: gcc, reloc: 0, suite: vltmt-2}
 
+  test-repcut:
+    needs: build-2404-gcc
+    uses: ./.github/workflows/reusable-repcut.yml
+    with:
+      archive: ${{ needs.build-2404-gcc.outputs.archive }}
+
   lint-py:
     name: Lint Python
     uses: ./.github/workflows/reusable-lint-py.yml

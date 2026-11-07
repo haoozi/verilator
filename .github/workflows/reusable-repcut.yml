@@ -1,0 +1,121 @@
+---
+# DESCRIPTION: Github actions config
+# SPDX-License-Identifier: LGPL-3.0-only OR Artistic-2.0
+
+name: reusable-repcut
+
+on:
+  workflow_call:
+    inputs:
+      archive:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+    working-directory: repo
+
+jobs:
+  test:
+    name: Test | RepCut external partitioner
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - name: Download repository archive
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8
+        with:
+          name: ${{ inputs.archive }}
+          path: ${{ github.workspace }}
+
+      - name: Unpack repository archive
+        working-directory: ${{ github.workspace }}
+        env:
+          ARCHIVE: ${{ inputs.archive }}
+        run: tar -xzf "$ARCHIVE"
+
+      - name: Checkout RepCut partitioner
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7
+        with:
+          repository: ucsc-vama/RepCut-Partitioner
+          ref: 996fe79682610281ca2bd4ccc5986ea05665df1f
+          path: deps/repcut
+          persist-credentials: false
+
+      - name: Checkout MtKaHyPar
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7
+        with:
+          repository: kahypar/mt-kahypar
+          ref: 212440d553b744e8ef0b3d81fc4dd6b880091810
+          path: deps/mt-kahypar
+          persist-credentials: false
+
+      - name: Install partitioner and test build dependencies
+        env:
+          CI_BUILD_STAGE_NAME: test
+          CI_OS_NAME: linux
+          CI_RUNS_ON: ubuntu-24.04
+        run: |
+          ./ci/ci-install.bash
+          sudo apt-get install -y cmake g++ libboost-program-options-dev libhwloc-dev libtbb-dev ninja-build numactl python3-distro python3-venv
+
+      - name: Install SARIF tools
+        run: |
+          python3 -m venv --system-site-packages ../repcut-tools
+          ../repcut-tools/bin/python -m pip install sarif-tools==3.0.5
+          echo "$GITHUB_WORKSPACE/repcut-tools/bin" >> "$GITHUB_PATH"
+
+      - name: Build partitioners
+        run: |
+          cmake -S ../deps/repcut -B ../deps/repcut-build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build ../deps/repcut-build --target rcp --parallel 2
+          cmake -S ../deps/mt-kahypar -B ../deps/mt-kahypar-build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build ../deps/mt-kahypar-build --target MtKaHyPar --parallel 2
+
+      - name: Test automatic partitioning
+        working-directory: repo/test_regress
+        env:
+          VERILATOR_ROOT: ${{ github.workspace }}/repo
+        run: |
+          export PATH="$GITHUB_WORKSPACE/deps/repcut-build/tools/rcp:$GITHUB_WORKSPACE/deps/mt-kahypar-build/mt-kahypar/application:$PATH"
+          command -v rcp
+          command -v MtKaHyPar
+          python3 driver.py --vltmt --jobs 2 t/t_repcut_partitioner.py t/t_repcut_hierarchy.py
+
+      - name: Test upstream regressions with RepCut
+        working-directory: repo/test_regress
+        env:
+          VERILATOR_ROOT: ${{ github.workspace }}/repo
+          VERILATOR_TEST_FLAGS: --repcut
+        run: |
+          export PATH="$GITHUB_WORKSPACE/deps/repcut-build/tools/rcp:$GITHUB_WORKSPACE/deps/mt-kahypar-build/mt-kahypar/application:$PATH"
+          python3 driver.py --vlt --vltmt --jobs 2 \
+            t/t_case_huge.py t/t_ccache_report.py t/t_cover_line_cc.py t/t_cover_line_cc_vlt.py \
+            t/t_dfg_dump_patterns.py t/t_dfg_synthesis.py \
+            t/t_dotfiles.py t/t_dpi_threads_collide.py t/t_dump_inputs_rerun.py \
+            t/t_flag_make_json.py t/t_flag_prefix.py \
+            t/t_gantt.py t/t_gantt_hier.py t/t_gantt_two.py \
+            t/t_hier_block_chained.py t/t_hier_block_perf.py \
+            t/t_inst_tree_inl0_pub1.py t/t_inst_tree_inl1_pub0.py t/t_mem_shift.py \
+            t/t_opt_inline_cfuncs_trace.py t/t_opt_merge_cond.py \
+            t/t_opt_merge_cond_blowup.py t/t_opt_merge_cond_no_motion.py \
+            t/t_pgo_profoutofdate_bad.py t/t_pgo_threads.py t/t_pgo_threads_hier.py \
+            t/t_protect_ids_key.py t/t_sarif.py t/t_threads_nondeterminism.py \
+            t/t_timing_debug1.py t/t_variable_order_mtask.py t/t_verilated_debug.py \
+            t/t_x_rand_mt_stability.py t/t_x_rand_mt_stability_add.py \
+            t/t_x_rand_mt_stability_add_trace.py t/t_x_rand_mt_stability_trace.py \
+            t/t_x_rand_mt_stability_zeros.py
+
+      - name: Upload test logs
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
+        with:
+          name: repcut-test-logs
+          path: |
+            repo/test_regress/obj_dist/*.log
+            repo/test_regress/obj_vlt/**/*.log
+            repo/test_regress/obj_vltmt/**/*.log
+          retention-days: 7
