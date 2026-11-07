@@ -409,6 +409,10 @@ $(TGT): $(PREDEP_H) $(OBJS)
 %.o: %.cpp
 	$(OBJCACHE) ${CXX} ${CXXFLAGS} ${CXXFLAGSOBJ} ${CPPFLAGSWALL} -c $< -o $@
 
+# This generated source includes the AST PCH implicitly. Keep its compilation
+# after PCH regeneration, including when an options or AST header changes.
+V3Const__gen.o: V3PchAstNoMT.h.gch
+
 V3ParseLex.o: V3ParseLex.cpp V3Lexer.yy.cpp V3ParseBison.c
 	$(OBJCACHE) ${CXX} ${CXXFLAGS} ${CXXFLAGSOBJ} ${CPPFLAGSPARSER} -c $< -o $@
 
