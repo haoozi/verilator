@@ -4,6 +4,11 @@
 // SPDX-FileCopyrightText: 2022 Antmicro Ltd
 // SPDX-License-Identifier: CC0-1.0
 
+// verilog_format: off
+`define stop $stop
+`define checkh(gotv,expv) do if ((gotv) !== (expv)) begin $write("%%Error: %s:%0d: got=%p exp=%p\n", `__FILE__, `__LINE__, (gotv), (expv)); `stop; end while(0);
+// verilog_format: on
+
 module t (/*AUTOARG*/
   // Inputs
   clk
@@ -38,6 +43,18 @@ module t (/*AUTOARG*/
   always @cb $display("%0t | cb.a=%b", $time, cb.a);
   always @cb $display("%0t | cb.b=%b", $time, cb.b);
   always @cb.y $display("%0t | cb.y=%b", $time, cb.y);
+
+  // Check the region boundaries independently of callback print order. The #0
+  // inputs see the blocking update and completed NBA, but not the Re-NBA drive.
+  // The #1step input still sees b from before this time slot, including when
+  // feedback creates a second clocking event without advancing simulation time.
+  always @cb begin
+    `checkh(cb.a, a);
+    `checkh(cb.a, c);
+    `checkh(cb.y, ~cb.a);
+    `checkh(cb.y, x);
+    `checkh(cb.b, 1'b1);
+  end
 
   // Retrigger everything after Observed
   always @cb.a b = x;
