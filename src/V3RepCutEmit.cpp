@@ -335,7 +335,7 @@ class Emitter final {
     }
     AstNodeExpr* operand(const Vertex& original) {
         const Vertex& vertex = *m_graph.m_vertexps[m_representatives[original.m_id]];
-        if (vertex.m_kind == Op::CONST) return constant(vertex);
+        if (vertex.m_kind == Op::CONSTANT) return constant(vertex);
         if (vertex.m_kind == Op::INPUT || vertex.m_kind == Op::OLD || vertex.m_kind == Op::OLDMEM
             || vertex.m_kind == Op::INIT || vertex.m_kind == Op::EXTERNAL) {
             return ref(inputStorage(vertex.m_storage));
@@ -618,7 +618,7 @@ class Emitter final {
                 ++m_uses[input];
                 m_consumers[input] = id;
             }
-            if (vertex.m_kind == Op::EFFECT || vertex.m_kind == Op::CALLBACK) {
+            if (vertex.m_kind == Op::EFFECT || vertex.m_kind == Op::CAPTURE) {
                 if (vertex.m_kind == Op::EFFECT) {
                     m_candidates[id][0] = temp(tag + "__effect" + cvtToStr(id), 1, false);
                     statements.push_back(new AstAssign{m_flp,
@@ -636,7 +636,7 @@ class Emitter final {
             if (vertex.m_kind != Op::MEMWRITE) continue;
             for (size_t i = 0; i + 1 < vertex.m_inputps.size(); ++i) {
                 const Vertex& input = *vertex.m_inputps[i + 1];
-                if (i == 3 && input.m_kind == Op::CONST) continue;
+                if (i == 3 && input.m_kind == Op::CONSTANT) continue;
                 m_candidates[id][i] = temp(tag + "__n" + cvtToStr(id) + "_" + cvtToStr(i),
                                            input.m_width, input.m_signed);
             }
@@ -647,11 +647,11 @@ class Emitter final {
         std::vector<Frame> frames{{NO_ID, nullptr, false}};
         for (const size_t id : sequence) {
             const Vertex& vertex = *m_graph.m_vertexps[id];
-            if (vertex.m_kind == Op::CONST || vertex.m_kind == Op::OLD
+            if (vertex.m_kind == Op::CONSTANT || vertex.m_kind == Op::OLD
                 || vertex.m_kind == Op::OLDMEM || vertex.m_kind == Op::INPUT
                 || vertex.m_kind == Op::INIT || vertex.m_kind == Op::EXTERNAL)
                 continue;
-            if (vertex.m_kind == Op::EFFECT || vertex.m_kind == Op::CALLBACK) {
+            if (vertex.m_kind == Op::EFFECT || vertex.m_kind == Op::CAPTURE) {
                 enterRegion(statements, frames, vertex.m_region);
                 for (size_t i = 0; i < vertex.m_inputps.size(); ++i) {
                     append(statements, frames.back(),
@@ -754,7 +754,7 @@ class Emitter final {
                                             ref(candidate[1])};
         if (vertex.m_inputps.size() == 5) {
             const Vertex& offset = *vertex.m_inputps[4];
-            AstNodeExpr* const offsetp = offset.m_kind == Op::CONST
+            AstNodeExpr* const offsetp = offset.m_kind == Op::CONSTANT
                                              ? static_cast<AstNodeExpr*>(constant(offset))
                                              : ref(candidate[3]);
             lhsp = new AstSel{m_flp, lhsp, offsetp, vertex.m_width};
@@ -1402,7 +1402,7 @@ class Emitter final {
             std::vector<std::pair<size_t, bool>> pending;
             for (const size_t sink : found->second) {
                 const Op kind = m_graph.m_vertexps[sink]->m_kind;
-                (kind == Op::CALLBACK ? domain.m_callbacks
+                (kind == Op::CAPTURE  ? domain.m_callbacks
                  : kind == Op::EFFECT ? domain.m_effects
                                       : domain.m_kernel.m_sinks)
                     .push_back(sink);

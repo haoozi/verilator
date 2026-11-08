@@ -45,7 +45,7 @@ bool pure(const Vertex& vertex) {
     case Op::BRANCH:
     case Op::CONCAT:
     case Op::COND:
-    case Op::CONST:
+    case Op::CONSTANT:
     case Op::COUNTONES:
     case Op::DIV:
     case Op::DIVS:
@@ -250,11 +250,11 @@ void SharedPhase::selfTest() {
     other->m_storage = 1;
     Vertex* const old = leaves.make(Op::OLD, 65, false);
     old->m_storage = 0;
-    Vertex* const literal = leaves.make(Op::CONST, 65, false);
+    Vertex* const literal = leaves.make(Op::CONSTANT, 65, false);
     literal->m_words = {1, 0, 0};
-    Vertex* const literalCopy = leaves.make(Op::CONST, 65, false);
+    Vertex* const literalCopy = leaves.make(Op::CONSTANT, 65, false);
     literalCopy->m_words = {1, 0, 0};
-    Vertex* const upper = leaves.make(Op::CONST, 65, false);
+    Vertex* const upper = leaves.make(Op::CONSTANT, 65, false);
     upper->m_words = {1, 0, 1};
     Vertex* const converted = leaves.make(Op::VAR, 63, false, {source});
     Vertex* const signedAlias = leaves.make(Op::VAR, 65, true, {source});

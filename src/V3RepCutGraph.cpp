@@ -40,10 +40,10 @@ const char* V3RepCut::ascii(Op op) {
     case Op::ADD: return "ADD";
     case Op::AND: return "AND";
     case Op::BRANCH: return "BRANCH";
-    case Op::CALLBACK: return "CALLBACK";
+    case Op::CAPTURE: return "CALLBACK";
     case Op::CONCAT: return "CONCAT";
     case Op::COND: return "COND";
-    case Op::CONST: return "CONST";
+    case Op::CONSTANT: return "CONST";
     case Op::CONTEXT: return "CONTEXT";
     case Op::COUNTONES: return "COUNTONES";
     case Op::DIV: return "DIV";
@@ -109,10 +109,10 @@ V3RepCut::Vertex::Vertex(V3Graph* graphp, size_t id, Op kind, int width, bool si
 
 bool V3RepCut::Vertex::isSink() const {
     return m_kind == Op::NEXT || m_kind == Op::OUTPUT || m_kind == Op::MEMWRITE
-           || m_kind == Op::EFFECT || m_kind == Op::CALLBACK;
+           || m_kind == Op::EFFECT || m_kind == Op::CAPTURE;
 }
 bool V3RepCut::Vertex::zeroCost() const {
-    return m_kind == Op::VAR || m_kind == Op::OLD || m_kind == Op::INPUT || m_kind == Op::CONST
+    return m_kind == Op::VAR || m_kind == Op::OLD || m_kind == Op::INPUT || m_kind == Op::CONSTANT
            || m_kind == Op::OLDMEM || m_kind == Op::INIT || m_kind == Op::EXTERNAL;
 }
 
@@ -429,7 +429,7 @@ bool V3RepCut::Graph::ownership(const std::vector<std::vector<size_t>>& partitio
     for (const Vertex* const vp : m_vertexps) {
         if (!covered[vp->m_id]) return reject("Uncovered node");
         if (!vp->isSink()) continue;
-        if (vp->m_kind == Op::EFFECT || vp->m_kind == Op::CALLBACK) {
+        if (vp->m_kind == Op::EFFECT || vp->m_kind == Op::CAPTURE) {
             if (vp->m_domain >= m_domains.size()) return reject("Missing sink domain");
             continue;
         }
@@ -486,7 +486,7 @@ static void selfTestControl() {
     Graph graph;
     graph.m_storage = {{"next", 8, false, 0}, {"output", 8, false, 0}};
     graph.m_domains = {{"clock"}};
-    Vertex* const unusedp = graph.make(Op::CONST, 1, false);
+    Vertex* const unusedp = graph.make(Op::CONSTANT, 1, false);
     const size_t unusedRegion = graph.makeRegion(NO_ID, unusedp, true);
     Vertex* const predicatep = graph.make(Op::INPUT, 1, false);
     Vertex* const datap = graph.make(Op::INPUT, 8, false);
@@ -560,7 +560,7 @@ void V3RepCut::Graph::selfTest() {
     graph.m_domains = {{"same"}};
     Vertex* const oldp = graph.make(Op::OLDMEM, 8, false);
     oldp->m_storage = 1;
-    Vertex* const onep = graph.make(Op::CONST, 1, false);
+    Vertex* const onep = graph.make(Op::CONSTANT, 1, false);
     onep->m_words = {1};
     // Creation order differs from source priority. Candidates belong to different
     // workers, while publication must apply early then late at a single owner.

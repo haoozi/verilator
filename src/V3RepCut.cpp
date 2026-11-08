@@ -468,7 +468,7 @@ class RepCutVisitor final : public VNVisitorConst {
         RepCutVertex* const vp = m_result.make(kind, width, sign, inputs, label);
         // Global storage references and literals retain unconditional availability.
         // A branch use must not move the definition of a shared value into it.
-        if (m_region != V3RepCut::NO_ID && kind != Op::VAR && kind != Op::CONST) {
+        if (m_region != V3RepCut::NO_ID && kind != Op::VAR && kind != Op::CONSTANT) {
             m_result.setRegion(vp, m_region);
         }
         return vp;
@@ -479,7 +479,7 @@ class RepCutVisitor final : public VNVisitorConst {
         return make(kind, nodep->width(), nodep->isSigned(), inputs, label);
     }
     RepCutVertex* constant(int width, bool sign, uint32_t word, const std::string& label) {
-        RepCutVertex* const vp = make(Op::CONST, width, sign, {}, label);
+        RepCutVertex* const vp = make(Op::CONSTANT, width, sign, {}, label);
         vp->m_words.resize(VL_WORDS_I(width), 0);
         vp->m_words[0] = word;
         return vp;
@@ -679,7 +679,7 @@ class RepCutVisitor final : public VNVisitorConst {
                 unsupported("four-state constant");
                 return nullptr;
             }
-            RepCutVertex* const vp = make(Op::CONST, nodep, {}, cp->num().ascii());
+            RepCutVertex* const vp = make(Op::CONSTANT, nodep, {}, cp->num().ascii());
             for (int i = 0; i < VL_WORDS_I(nodep->width()); ++i) {
                 vp->m_words.push_back(cp->num().edataWord(i));
             }
@@ -879,7 +879,7 @@ class RepCutVisitor final : public VNVisitorConst {
         const size_t callbackId = m_callbacks++;
         const size_t domain = nativeDomain(m_activep->sentreep());
         for (size_t i = 0; i < inputs.size(); ++i) {
-            RepCutVertex* const capturep = make(Op::CALLBACK, 1, false, {inputs[i]});
+            RepCutVertex* const capturep = make(Op::CAPTURE, 1, false, {inputs[i]});
             capturep->m_domain = domain;
             capturep->m_aux = callbackId;
             capturep->m_priority = i;

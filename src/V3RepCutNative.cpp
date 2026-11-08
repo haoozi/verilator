@@ -529,7 +529,7 @@ class NativeProgram final {
                 UASSERT(vertex.m_kind == Op::MEMWRITE, "Unexpected native source sink");
                 for (size_t i = 0; i + 1 < vertex.m_inputps.size(); ++i) {
                     const Vertex& input = *vertex.m_inputps[i + 1];
-                    if (i == 3 && input.m_kind == Op::CONST) continue;
+                    if (i == 3 && input.m_kind == Op::CONSTANT) continue;
                     values[i] = temp(m_scope.findLogicDType(input.m_width, input.m_width,
                                                             input.m_signed ? VSigning::SIGNED
                                                                            : VSigning::UNSIGNED));

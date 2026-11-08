@@ -35,10 +35,10 @@ enum class Op : uint8_t {
     ADD,
     AND,
     BRANCH,  // Boolean decision evaluated in its containing region
-    CALLBACK,  // Independent input capture for a native foreign procedure
+    CAPTURE,  // Independent input capture for a native foreign procedure
     CONCAT,
     COND,
-    CONST,
+    CONSTANT,
     CONTEXT,  // Read of simulation context; never cached across evaluations
     COUNTONES,
     DIV,
